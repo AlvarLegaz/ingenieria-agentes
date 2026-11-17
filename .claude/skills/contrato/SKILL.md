@@ -1,9 +1,9 @@
 ---
 name: contrato
-description: Define o modifica un contrato compartido entre módulos o agentes (API, esquema, interfaz pública). Usar antes de repartir trabajo en tareas MEDIAS o COMPLEJAS y siempre que haya que cambiar un contrato existente.
+description: Define o modifica un contrato compartido entre módulos (API, esquema, interfaz pública). Usar al crear una interfaz que usarán otros componentes y siempre que haya que cambiar un contrato existente.
 ---
 
-# Contratos entre módulos y agentes
+# Contratos entre módulos
 
 ## Definir un contrato
 
@@ -18,7 +18,7 @@ description: Define o modifica un contrato compartido entre módulos o agentes (
 ```markdown
 # <id>: propósito en una línea
 
-- Responsable: <módulo o agente>
+- Responsable: <módulo>
 - Definición ejecutable: <ruta al tipo, esquema o test>
 - Consumidores: <módulos que dependen de él>
 
@@ -35,9 +35,10 @@ Comando o test que demuestra que se cumple.
 
 1. Explica el motivo del cambio.
 2. Localiza todos los consumidores con una búsqueda en el repositorio.
-3. Si el cambio es estructural, pásalo a revisión de `arquitecto`.
+3. Si el cambio es estructural, evalúalo antes con el skill `arquitectura`.
 4. Actualiza primero la definición ejecutable y sus tests.
 5. Adapta los consumidores, manteniendo la compatibilidad cuando sea posible.
-6. Ejecuta los tests de integración y de contrato.
+6. Ejecuta `scripts/verificar.sh` e invoca a `verificador` con los consumidores
+   afectados como criterios.
 
-Ningún agente cambia un contrato compartido sin completar estos pasos.
+Un contrato compartido no se cambia sin completar estos pasos.
