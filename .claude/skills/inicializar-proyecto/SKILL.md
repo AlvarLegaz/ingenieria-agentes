@@ -43,8 +43,9 @@ description: Prepara un repositorio nuevo o recién adoptado para trabajar con e
 
 - No crees directorios vacíos ni documentación de relleno.
 - No montes CI, contenedores ni infraestructura que todavía no hagan falta.
-- No añadas subagentes por rol. Uno nuevo solo se justifica si separa contexto
-  (ver README, sección 3).
+- No añadas subagentes que escriban archivos: el único que escribe es el agente
+  principal. Un subagente nuevo solo se justifica si separa contexto o aporta
+  una evaluación independiente (ver README, sección 2.3).
 
 ## Resultado
 

@@ -25,7 +25,7 @@ interpretación propia, y no conclusión de una fuente, se indica como tal.
 - [2. Principios](#2-principios)
   - [2.1 Contexto mínimo y relevante](#21-contexto-mínimo-y-relevante)
   - [2.2 Un solo agente escribe](#22-un-solo-agente-escribe)
-  - [2.3 Separar contexto, no repartir roles](#23-separar-contexto-no-repartir-roles)
+  - [2.3 Un programador y un planificador-evaluador](#23-un-programador-y-un-planificador-evaluador)
   - [2.4 Verificación externa y ejecutable](#24-verificación-externa-y-ejecutable)
   - [2.5 Lo obligatorio se garantiza con mecanismos](#25-lo-obligatorio-se-garantiza-con-mecanismos)
   - [2.6 Interfaces explícitas](#26-interfaces-explícitas)
@@ -89,7 +89,7 @@ proyecto/
 │   ├── especificacion.md        Qué debe hacer el proyecto
 │   └── adr/                     Por qué está construido así (decisiones)
 ├── .claude/
-│   ├── agents/verificador.md    Verificación independiente de cada cambio
+│   ├── agents/                  planificador-evaluador: planifica y evalúa
 │   ├── skills/                  Conocimiento que se carga cuando hace falta
 │   ├── hooks/                   Reglas que se cumplen siempre
 │   └── settings.json            Registro de hooks y permisos
@@ -200,36 +200,67 @@ sistemas suelen mejorar poco o nada sobre un solo agente [20].
 **En el repositorio.** Un único agente principal hace el trabajo de principio a
 fin y es el único que modifica archivos.
 
-### 2.3 Separar contexto, no repartir roles
+### 2.3 Un programador y un planificador-evaluador
 
 Un subagente es una instancia del modelo con su propia ventana de contexto, su
-propio prompt y sus propias herramientas [21]. Su utilidad real es esa: aislar
-un trabajo para que no llene el contexto del agente principal.
+propio prompt y sus propias herramientas [21]. Cómo repartir el trabajo entre
+agentes es la decisión más discutida de este diseño, y la evidencia tira en dos
+direcciones.
 
-Anthropic distingue entre dividir por roles y dividir por contexto. Repartir el
-trabajo como en un equipo humano (planificador, implementador, tester, revisor)
-produce un "teléfono roto": la información se degrada en cada traspaso, y las
-fases sucesivas de un mismo trabajo deberían quedarse en un solo agente [15].
-Las fronteras adecuadas son otras: líneas de investigación independientes,
-componentes con interfaces limpias y verificación de caja negra [15]. En la
-misma línea, Anthropic informó en 2026 de despliegues que mejoraron al integrar
-subagentes de planificación y de dominio en un solo agente con skills, uno de
-ellos con una ejecución unas 2 veces más rápida [13]. Mantener un subagente se
-justifica cuando hay una degradación medible por exceso de contexto, cuando
-varias tareas necesitan contextos nuevos que se descartan al terminar, o cuando
-un solo agente no acierta con las herramientas [13].
+**En contra de repartir por roles.** Anthropic advierte que repartir el trabajo
+como en un equipo humano (planificador, implementador, tester, revisor) produce
+un "teléfono roto": la información se degrada en cada traspaso [15]. En 2026
+informó de despliegues que mejoraron al integrar planificadores y subagentes de
+dominio en un solo agente con skills [13], y CooperBench muestra que dos agentes
+que escriben a la vez rinden peor que uno solo [17].
 
-**En el repositorio.** Hay dos subagentes, y ambos separan contexto: `Explore`,
-incluido en Claude Code, para búsquedas amplias de solo lectura [21], y
-`verificador`, para la verificación independiente (sección 2.4).
+**A favor de separar planificación y evaluación de la ejecución.** La propia
+Anthropic, en su trabajo de 2026 sobre aplicaciones desarrolladas durante horas,
+usó una arquitectura de tres agentes: planificador, generador y evaluador [7].
+Su patrón *advisor* va en la misma línea: un modelo económico (Sonnet o Haiku)
+ejecuta la tarea de principio a fin y consulta a Opus en las decisiones
+difíciles; en sus evaluaciones mejoró los resultados de Sonnet solo con un coste
+por tarea menor [31]. Fuera de Anthropic, Aider obtuvo el mejor resultado de su
+benchmark de edición separando un modelo "arquitecto", que razona la solución,
+de un modelo "editor", que escribe el código [32].
+
+**Cómo se concilian.** Las fronteras que Anthropic considera válidas incluyen la
+verificación de caja negra [15], y lo que se degrada en los traspasos es sobre
+todo el contexto de implementación. De ahí cuatro decisiones:
+
+- **El programador es el agente principal.** Conversa con el usuario, conserva
+  todo el contexto de la implementación y es el único que escribe (código,
+  interfaz y tests). Las escrituras siguen en un solo hilo [19].
+- **El planificador-evaluador es un subagente sin herramientas de edición.**
+  Planifica antes de implementar y evalúa al terminar. No puede escribir, así
+  que no compite con el programador ni puede "arreglar" lo que evalúa.
+- **Los traspasos son artefactos con formato fijo**, no conversación libre: el
+  plan (archivos, pasos, contratos, criterios de aceptación comprobables) y el
+  veredicto (criterios con evidencia, defectos, desviaciones del plan).
+- **Cada modelo donde más rinde.** Opus, el modelo de más capacidad, razona el
+  plan y juzga el resultado; Sonnet, más económico, hace la mayor parte del
+  trabajo en tokens, que es implementar. Es el reparto del patrón *advisor* [31].
+
+*Limitación:* no hay estudios que comparen directamente este esquema con un solo
+agente o con un planificador y un programador como subagentes. Anthropic
+recomienda evaluar con tareas propias tres variantes: el modelo económico solo,
+el modelo económico con Opus como asesor y Opus solo [31]. El skill
+`evaluar-configuracion` lo contempla (sección 2.8).
+
+**En el repositorio.** La sesión principal usa Sonnet (`"model": "sonnet"` en
+`.claude/settings.json`) y es el programador. El subagente
+`planificador-evaluador` usa Opus y solo tiene herramientas de lectura,
+búsqueda y ejecución de comandos. Para búsquedas amplias se usa `Explore`,
+incluido en Claude Code [21]. El conocimiento especializado (arquitectura,
+interfaz, dominio, contratos) sigue en skills que carga el programador [13].
 
 ### 2.4 Verificación externa y ejecutable
 
-Si un modelo juzga mal su propio trabajo (sección 1), la verificación tiene que
+Si un modelo juzga mal su propio trabajo (sección 1), la evaluación tiene que
 venir de fuera. Anthropic comprobó que separar un agente evaluador del que
 genera es mucho más tratable que hacer autocrítico al generador, aunque el
 evaluador sigue siendo indulgente si no tiene criterios concretos [7]. Para que
-un verificador funcione recomienda darle criterios específicos en lugar de
+una verificación funcione recomienda darle criterios específicos en lugar de
 objetivos vagos, pedirle casos límite y pruebas negativas, y exigirle la batería
 completa, porque los verificadores suelen detenerse tras unos pocos tests
 superados [15]. La verificación es además una buena frontera de contexto: apenas
@@ -240,9 +271,12 @@ considera que dar al modelo una forma de comprobar su trabajo (tests, capturas,
 salidas esperadas) es lo que más mejora los resultados [22].
 
 **En el repositorio.** `scripts/verificar.sh` reúne build, lint, tipos y tests
-en un solo comando. El subagente `verificador` recibe criterios de aceptación,
-ejecuta la batería completa, prueba casos negativos y devuelve evidencia. No
-tiene herramientas de edición, de modo que no puede arreglar lo que verifica.
+en un solo comando. En modo EVALUAR, `planificador-evaluador` compara el diff
+con el plan, ejecuta la batería completa, comprueba cada criterio de aceptación
+con evidencia, prueba casos negativos y revisa que los tests no se hayan
+debilitado. El evaluador no ha escrito el código y además es otro modelo.
+*Interpretación propia:* esto debería reducir el sesgo de autopreferencia [6],
+que está ligado a que el modelo reconozca sus propios textos.
 
 ### 2.5 Lo obligatorio se garantiza con mecanismos
 
@@ -314,7 +348,7 @@ La especificación cumple el papel que en la ingeniería de requisitos clásica
 tienen los requisitos con criterios de aceptación. El propio trabajo de
 Anthropic de 2026 sobre aplicaciones de larga duración usa un agente planificador
 previo al que genera el código [7]. *Interpretación propia:* sus criterios de
-aceptación son además los que necesita el verificador (sección 2.4), y
+aceptación son además los que usa el planificador-evaluador (sección 2.4), y
 mantenerla fuera de `CLAUDE.md` evita cargar en cada sesión un texto largo que
 solo hace falta en algunas tareas (sección 2.1).
 
@@ -344,36 +378,38 @@ tiempo y falsos "terminado".
 
 ```mermaid
 flowchart TD
-    U[Usuario] -->|tarea| A[Agente principal<br/>lee CLAUDE.md]
+    U[Usuario] -->|tarea| A[Programador · agente principal · Sonnet<br/>lee CLAUDE.md · único que escribe]
     A -->|lee antes de añadir funcionalidad| ES[docs/especificacion.md<br/>qué debe hacer el proyecto]
+    A -->|1 · MODO PLAN| P[Planificador-evaluador · subagente · Opus<br/>sin herramientas de edición]
+    P -->|plan con criterios de aceptación| A
     A -->|carga cuando hace falta| S[Skills<br/>especificar · arquitectura · diseno-interfaz · dominio<br/>contrato · adr · evaluar-configuracion]
     A -->|búsqueda amplia, solo lectura| E[Subagente Explore]
-    A -->|único que escribe| C[Código del proyecto]
+    A -->|2 · implementa| C[Código, interfaz y tests]
     H1[Hooks antes de cada acción<br/>bloquear-comandos · proteger-archivos] -. pueden bloquear .-> C
-    A -->|criterios de aceptación| V[Subagente verificador<br/>sin edición]
-    V -->|informe con evidencia| A
+    A -->|3 · MODO EVALUAR| P
+    P -->|veredicto con evidencia| A
     A -->|al terminar| H2[Hook verificar-al-terminar<br/>scripts/verificar.sh]
     H2 -. si falla, no deja terminar .-> A
 ```
 
-El agente principal recibe la tarea con un contexto mínimo, consulta la
-especificación cuando la tarea afecta a lo que hace el proyecto y carga el
-conocimiento especializado solo cuando lo necesita. Delega en subagentes
-únicamente lo que conviene aislar: búsquedas que llenarían su contexto y la
-verificación, que debe ser independiente. Es el único que modifica el código, y
-lo hace dentro de los límites que fijan los hooks. Antes de terminar, el
-verificador comprueba el trabajo contra criterios concretos y el hook de cierre
-exige que la verificación completa pase.
+El programador (agente principal, Sonnet) recibe la tarea con un contexto
+mínimo y consulta la especificación cuando la tarea afecta a lo que hace el
+proyecto. Antes de implementar, pide un plan al planificador-evaluador (Opus),
+que devuelve los pasos y los criterios de aceptación. Implementa con el
+conocimiento de los skills que necesite, dentro de los límites que fijan los
+hooks, y es el único que modifica archivos. Al terminar, el
+planificador-evaluador comprueba el resultado contra el plan y sus criterios, y
+el hook de cierre exige que la verificación completa pase.
 
 | Componente | Principio que aplica |
 |---|---|
 | `CLAUDE.md` | Contexto mínimo y relevante (2.1) |
 | `.claude/skills/` | Contexto bajo demanda (2.1), interfaces explícitas (2.6), memoria (2.7), medición (2.8) |
 | `docs/especificacion.md` | Memoria en artefactos (2.7); fuente de los criterios de aceptación (2.4) |
-| `.claude/agents/verificador.md` | Verificación externa (2.4), separar contexto (2.3) |
+| `.claude/agents/planificador-evaluador.md` | Planificación y evaluación separadas de la ejecución (2.3), verificación externa (2.4) |
 | `.claude/hooks/` y `.claude/settings.json` | Lo obligatorio con mecanismos (2.5) |
 | `scripts/verificar.sh` | Verificación ejecutable (2.4) |
-| `docs/autoevaluacion.html` | Test de 50 preguntas sobre esta teoría |
+| `docs/autoevaluacion.html` | Test de autoevaluación sobre esta teoría |
 
 ---
 
@@ -383,9 +419,14 @@ exige que la verificación completa pase.
   contradictoria [10][11][4], porque cada estudio usa tareas y modelos distintos.
 - Las guías de Anthropic de 2026 [13][15] se basan en su experiencia con clientes
   y en mediciones puntuales, no en estudios controlados publicados.
-- CooperBench [17] mide agentes que escriben en paralelo, no un agente principal
-  acompañado de un verificador de solo lectura, que es el esquema que se usa
-  aquí.
+- CooperBench [17] mide agentes que escriben en paralelo, no un programador
+  acompañado de un planificador-evaluador de solo lectura, que es el esquema que
+  se usa aquí.
+- El reparto de modelos (Opus planifica y evalúa, Sonnet programa) se apoya en
+  el patrón *advisor* [31] y en Aider [32], pero ninguno de los dos mide
+  exactamente este esquema en Claude Code. El plan que entrega el subagente es un
+  traspaso de contexto y puede perder información; el formato fijo del plan
+  intenta reducirlo, pero no se ha medido.
 - Los hooks reducen riesgos, pero `bloquear-comandos.py` se basa en patrones de
   texto y un comando ofuscado puede saltárselo. No sustituyen a los permisos ni a
   las copias de seguridad.
@@ -472,8 +513,8 @@ Abre `claude` en la carpeta del proyecto y sigue este orden:
 | 1 | `/inicializar-proyecto` | Detecta el stack, rellena `CLAUDE.md` y `scripts/verificar.sh` y, si la especificación está vacía, te pregunta qué quieres construir |
 | 2 | Tu idea, con tus palabras | El skill `especificar` la convierte en `docs/especificacion.md`, con funcionalidades y criterios de aceptación |
 | 3 | Revisa la especificación y corrígela | Es tu documento: nada se implementa hasta que lo apruebes |
-| 4 | `/agents` y `/hooks` | Comprobar que aparece `verificador` y que los tres hooks están registrados |
-| 5 | Una tarea concreta, por ejemplo: "Implementa F1 de la especificación" | El agente implementa, verifica con `scripts/verificar.sh` y, si procede, con `verificador` |
+| 4 | `/agents` y `/hooks` | Comprobar que aparece `planificador-evaluador` y que los tres hooks están registrados |
+| 5 | Una tarea concreta, por ejemplo: "Implementa F1 de la especificación" | El programador pide un plan al `planificador-evaluador`, implementa, ejecuta `scripts/verificar.sh` y pide la evaluación final |
 
 Los skills también se activan si los pides con palabras ("inicializa el
 proyecto", "ayúdame a especificar lo que quiero construir").
@@ -559,6 +600,10 @@ proyecto", "ayúdame a especificar lo que quiero construir").
     <https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions>
 30. Anthropic. *Hooks reference* (documentación de Claude Code).
     <https://code.claude.com/docs/en/hooks>
+31. Anthropic (2026, 9 de abril). *The advisor strategy: Give agents an
+    intelligence boost*. <https://claude.com/blog/the-advisor-strategy>
+32. Aider (2024, 26 de septiembre). *Separating code reasoning and editing*.
+    <https://aider.chat/2024/09/26/architect.html>
 
 ---
 

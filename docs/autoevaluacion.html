@@ -81,7 +81,7 @@
 <body>
 <main>
   <h1>Autoevaluación: ingeniería de agentes para programación</h1>
-  <p class="sub">70 preguntas: teoría y casos prácticos con código. Cada respuesta se corrige al momento con su explicación y la fuente.</p>
+  <p class="sub">74 preguntas: teoría y casos prácticos con código. Cada respuesta se corrige al momento con su explicación y la fuente.</p>
 
   <div class="chips" id="chips" role="group" aria-label="Filtrar por bloque"></div>
   <div class="bar"><div id="bar"></div></div>
@@ -121,6 +121,8 @@ const REFS = {
   26: ["Minsky (2010) / Wlaschin. Making illegal states unrepresentable", "https://fsharpforfunandprofit.com/posts/designing-with-types-making-illegal-states-unrepresentable/"],
   29: ["Nygard, M. (2011). Documenting Architecture Decisions", "https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions"],
   30: ["Anthropic. Hooks reference (documentación de Claude Code)", "https://code.claude.com/docs/en/hooks"],
+  31: ["Anthropic (2026, abril). The advisor strategy", "https://claude.com/blog/the-advisor-strategy"],
+  32: ["Aider (2024). Separating code reasoning and editing", "https://aider.chat/2024/09/26/architect.html"],
   0: ["Repositorio ingenieria-agentes", "https://github.com/AlvarLegaz/ingenieria-agentes"]
 };
 
@@ -225,6 +227,16 @@ const Q = [
    e:"Es conocimiento especializado, no una frontera de contexto, así que va en un skill y no en un subagente. Lo mismo ocurre con el diseño de interfaz y el dominio.", r:[0,15,13]},
 
   // 3. Verificación
+  {s:2, q:"En el patrón «advisor» que Anthropic presentó en abril de 2026, se combinan Opus con un modelo más económico (Sonnet o Haiku). ¿Qué papel tiene cada uno?",
+   o:["El modelo económico ejecuta la tarea de principio a fin y consulta a Opus en las decisiones difíciles","Opus ejecuta la tarea y consulta al modelo económico para ahorrar","Los dos ejecutan la misma tarea y se elige el mejor resultado","Opus escribe el código y el modelo económico lo revisa"],
+   e:"En sus evaluaciones, Sonnet con Opus como asesor mejoró los resultados de Sonnet solo con un coste por tarea menor. Es el reparto que inspira a un programador en Sonnet con un planificador-evaluador en Opus.", r:[31]},
+  {s:2, q:"El «modo arquitecto» de la herramienta Aider obtuvo en 2024 el mejor resultado de su benchmark de edición de código. ¿En qué consiste?",
+   o:["Un modelo «arquitecto» razona cómo resolver el problema y otro modelo «editor» convierte esa solución en cambios en los archivos","Un modelo escribe el código y otro escribe los tests","Varios modelos proponen soluciones y se vota la mejor","Un modelo divide el repositorio en módulos y asigna uno a cada agente"],
+   e:"Separar el razonamiento de la edición permite usar un modelo fuerte donde más importa y uno más barato para el trabajo mecánico.", r:[32]},
+  {s:2, q:"Anthropic recomienda decidir el reparto de modelos de un agente comparando, con las mismas tareas, tres variantes. ¿Cuáles?",
+   o:["El modelo económico solo, el modelo económico con Opus como asesor, y Opus solo","Opus, Sonnet y Haiku, cada uno solo","Un agente, dos agentes y tres agentes","Con CLAUDE.md, sin CLAUDE.md y con AGENTS.md"],
+   e:"Lo hace en el anuncio del patrón «advisor». La mejor configuración depende de las tareas, así que hay que medirla con las propias.", r:[31]},
+
   {s:3, q:"Según Huang et al. (ICLR 2024), ¿qué ocurre cuando un modelo intenta corregir su propio razonamiento sin realimentación externa?",
    o:["Le cuesta corregirse y a veces empeora","Corrige casi todos sus errores","Mejora siempre un poco","Se niega a cambiar la respuesta"],
    e:"Por eso la verificación necesita algo externo: tests, otro agente o ambos.", r:[5]},
@@ -307,7 +319,7 @@ model: inherit
 ├── revisor.md         # revisa el código del programador
 └── documentador.md    # actualiza la documentación`,
    o:["Reparte por roles fases sucesivas del mismo trabajo, y la información se degrada en cada traspaso","Son pocos subagentes para un proyecto real","Faltan subagentes de seguridad y de rendimiento","Los nombres de los archivos deberían estar en inglés"],
-   e:"Las fases sucesivas de un mismo trabajo deben quedarse en un solo agente. Planificar y documentar encajan como skills; revisar sí puede ser un verificador de caja negra.", r:[15,13]},
+   e:"Cuatro agentes encadenados traspasan contexto tres veces, y la información se degrada en cada traspaso. Si se separa algo, conviene que sea un agente de solo lectura que planifique y evalúe con traspasos de formato fijo, mientras un único agente escribe. Documentar encaja mejor como skill.", r:[15,13,7]},
 
   {s:7, q:"¿Qué problema práctico tiene la descripción de este subagente de Claude Code?",
    c:`---
@@ -466,7 +478,17 @@ name: diseno-interfaz
 description: Diseñar e implementar interfaces de usuario...
 ---`,
    o:["Es conocimiento que el agente principal carga cuando lo necesita, sin traspasar contexto a otro agente","Porque los subagentes no pueden editar HTML","Porque los skills se ejecutan en la GPU","Porque Claude Code solo permite un subagente"],
-   e:"Un skill carga primero una descripción breve y el contenido completo solo cuando hace falta, lo que elimina el motivo principal para repartir el trabajo entre subagentes.", r:[13,0]}
+   e:"Un skill carga primero una descripción breve y el contenido completo solo cuando hace falta, lo que elimina el motivo principal para repartir el trabajo entre subagentes.", r:[13,0]},
+  {s:7, q:"Un equipo quiere usar Opus para planificar y Sonnet para programar, manteniendo el contexto de implementación en un sitio y las escrituras en un solo hilo. ¿Qué reparto lo consigue?",
+   c:`Opción A: Opus como agente principal; delega la programación en tres subagentes
+          Sonnet (backend, frontend y tests) que trabajan en paralelo.
+Opción B: Sonnet como agente principal, que programa; Opus como subagente sin
+          herramientas de edición, que planifica antes y evalúa después.
+Opción C: Opus planifica y escribe el código; un subagente Sonnet lo revisa.
+Opción D: Dos agentes principales, uno Opus y otro Sonnet, en sesiones separadas
+          sobre el mismo repositorio.`,
+   o:["La B","La A","La C","La D"],
+   e:"En B solo escribe un agente, que conserva todo el contexto, y Opus aporta razonamiento sin poder modificar archivos. A y D ponen a varios agentes a escribir a la vez, que es lo que peor funciona en CooperBench; C deja a Opus haciendo la parte que más tokens consume.", r:[31,19,17]}
 ];
 
 const LET = ["A","B","C","D"];

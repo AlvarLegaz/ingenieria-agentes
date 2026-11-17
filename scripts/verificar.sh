@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Verificación completa del proyecto. La usan el agente, el subagente
-# `verificador` y el hook Stop. Debe terminar con código 0 solo si todo pasa.
+# `planificador-evaluador` y el hook Stop. Debe terminar con código 0 solo si todo pasa.
 #
 # RELLENAR con los comandos reales del proyecto (descomenta y adapta).
 set -euo pipefail

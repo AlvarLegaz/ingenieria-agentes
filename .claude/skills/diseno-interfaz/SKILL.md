@@ -27,5 +27,5 @@ description: Diseñar e implementar interfaces de usuario - flujos, estados de c
 
 - Ejecuta la interfaz o sus tests de extremo a extremo y comprueba cada estado.
 - Si hay herramienta de capturas, compara con lo esperado.
-- Los criterios de aceptación para `verificador` deben incluir los estados de
-  error y vacío.
+- Los criterios de aceptación que evalúe `planificador-evaluador` deben incluir
+  los estados de error y vacío.

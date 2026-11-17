@@ -23,6 +23,11 @@ proyecto, así que la decisión se toma con datos propios.
 - **A:** configuración actual.
 - **B:** configuración con el cambio que se quiere probar (y nada más).
 
+Para decidir el reparto de modelos, Anthropic recomienda comparar tres
+variantes con las mismas tareas: el modelo económico solo, el modelo económico
+con Opus como asesor, y Opus solo. Aquí equivale a: sesión en Sonnet sin
+`planificador-evaluador`, sesión en Sonnet con él, y sesión en Opus.
+
 ## 3. Ejecuta
 
 - Cada tarea en cada variante, partiendo del mismo commit y en sesión nueva.

@@ -30,7 +30,7 @@ implementación: esas van en el skill `arquitectura` y en los ADR.
 ## Al implementar después
 
 - Cada tarea de funcionalidad remite a su sección (por ejemplo, F2).
-- Los criterios de aceptación de esa sección son los que se pasan al
-  subagente `verificador`.
+- `planificador-evaluador` parte de esa sección para el plan (modo PLAN) y
+  comprueba sus criterios de aceptación al terminar (modo EVALUAR).
 - Si durante la implementación aparece algo no previsto, se añade a
   "Preguntas abiertas" y se consulta; no se decide en silencio.

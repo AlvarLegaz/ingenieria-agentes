@@ -38,7 +38,7 @@ Comando o test que demuestra que se cumple.
 3. Si el cambio es estructural, evalúalo antes con el skill `arquitectura`.
 4. Actualiza primero la definición ejecutable y sus tests.
 5. Adapta los consumidores, manteniendo la compatibilidad cuando sea posible.
-6. Ejecuta `scripts/verificar.sh` e invoca a `verificador` con los consumidores
-   afectados como criterios.
+6. Ejecuta `scripts/verificar.sh` e invoca a `planificador-evaluador` en modo
+   EVALUAR con los consumidores afectados como criterios.
 
 Un contrato compartido no se cambia sin completar estos pasos.

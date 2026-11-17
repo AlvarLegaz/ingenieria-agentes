@@ -29,29 +29,40 @@ la especificación, o está vacía, usa el skill `especificar` antes de implemen
 
 ## Cómo se trabaja
 
-- Un solo agente hace el trabajo de principio a fin. Las escrituras no se
-  reparten entre varios agentes.
+Tú eres el programador: el único agente que escribe código, interfaz y tests.
+El subagente `planificador-evaluador` (Opus, sin permisos de escritura) planifica
+antes y evalúa después.
+
+Para cada tarea que añada o cambie funcionalidad:
+
+1. **Planificar.** Invoca a `planificador-evaluador` con `MODO: PLAN`, la tarea
+   y la sección de la especificación. Si el plan trae preguntas abiertas,
+   trasládalas al usuario antes de implementar.
+2. **Implementar** el plan, con sus tests. Si al implementar el plan resulta
+   inviable, no lo cambies en silencio: explica por qué y vuelve al paso 1.
+3. **Verificar** con `scripts/verificar.sh` y corregir lo que falle.
+4. **Evaluar.** Invoca a `planificador-evaluador` con `MODO: EVALUAR`, el plan y
+   un resumen de lo implementado. Si el veredicto es NO CUMPLE, corrige y vuelve
+   a evaluar. Tras tres evaluaciones sin CUMPLE, para y explica al usuario qué
+   falla.
+5. **Resumir** en pocas líneas: qué se hizo, qué evaluó el planificador-evaluador
+   y con qué resultado, qué queda pendiente.
+
+Cambios triviales (una errata, un texto, un ajuste de configuración): basta con
+el paso 3.
+
+Otras reglas de delegación:
+
 - El conocimiento especializado está en skills, que se cargan cuando hacen falta:
   `especificar`, `arquitectura`, `diseno-interfaz`, `dominio`, `contrato`, `adr`.
-- Usa subagentes solo para separar contexto, nunca para repartir roles:
-  - `Explore` (incluido en Claude Code) para búsquedas amplias de solo lectura
-    que llenarían la conversación.
-  - `verificador` para comprobar de forma independiente un cambio terminado.
-  - Varios subagentes en paralelo solo para líneas de investigación de solo
-    lectura e independientes entre sí.
-- Al delegar, pasa solo: objetivo, archivos relevantes, criterios concretos y
-  formato del resultado.
+- `Explore` (incluido en Claude Code) para búsquedas amplias de solo lectura que
+  llenarían la conversación.
+- No crees otros subagentes que escriban archivos: las escrituras van en un
+  solo hilo, el tuyo.
+- Al delegar, pasa solo lo necesario: tarea, archivos relevantes, plan o
+  criterios, y formato del resultado.
 
-## Terminar una tarea
-
-1. Ejecuta `scripts/verificar.sh` y corrige lo que falle.
-2. Si el cambio altera comportamiento en varios componentes, o un contrato,
-   invoca a `verificador` con criterios de aceptación concretos (los de la
-   especificación, si los hay).
-3. Resume en pocas líneas: qué se hizo, qué se verificó y cómo, qué queda
-   pendiente.
-
-Reglas:
+## Reglas de cierre
 
 - No digas que algo funciona ni que se han ejecutado pruebas si no lo has hecho.
   Si algo no puede verificarse, dilo junto con el riesgo.
