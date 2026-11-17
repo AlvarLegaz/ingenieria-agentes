@@ -10,9 +10,11 @@ explica esa base teórica: qué limitaciones tienen los modelos, qué principios
 derivan de ellas y cómo se materializa cada principio en el repositorio.
 
 Las afirmaciones remiten a la lista de [Referencias](#referencias). Se usan
-sobre todo estudios y guías de 2026; los trabajos anteriores aparecen cuando
-siguen siendo la referencia de un fenómeno, y los clásicos de la ingeniería del
-software (Parnas, Meyer, Shingo, Nygard) como fundamentos. Lo que es
+sobre todo estudios y guías de 2026. Un trabajo anterior sobre modelos de
+lenguaje solo se mantiene si la evidencia de 2026 va en la misma dirección; si
+la contradice, se retira. Los clásicos de la ingeniería del software (Parnas,
+Meyer, Shingo, Nygard) se citan como fundamentos de diseño, no como mediciones
+de modelos. Lo que es
 interpretación propia, y no conclusión de una fuente, se indica como tal.
 
 ## Índice
@@ -112,9 +114,16 @@ Un modelo no usa igual de bien toda la información que recibe. Su rendimiento
 cae cuando el dato relevante está en medio de un contexto largo, y empeora a
 medida que el contexto crece [1]. Anthropic llama a este fenómeno *context rot*
 y propone tratar el contexto como un recurso finito con rendimientos
-decrecientes: cada token adicional aporta menos que el anterior [2]. Lo mismo
-ocurre con las instrucciones: con cientos de ellas a la vez, incluso los mejores
-modelos dejan de cumplir una parte importante, y favorecen las primeras [3].
+decrecientes: cada token adicional aporta menos que el anterior [2].
+
+Los estudios de 2026 lo confirman en agentes. En LOCA-bench, el rendimiento de
+los agentes cae a medida que crece el estado del entorno, y las técnicas de
+gestión del contexto mejoran sustancialmente la tasa de éxito [33]. Un estudio
+sobre modelos que vigilan transcripciones de agentes de programación encontró
+que acciones peligrosas que detectaban en transcripciones cortas se les
+escapaban cuando estaban enterradas en medio de una transcripción larga [3].
+Anthropic, por su parte, observa que con más de 30 a 50 herramientas definidas
+en el prompt de sistema el agente empieza a elegir peor cuál usar [13].
 
 ### El cumplimiento se degrada con el tiempo
 
@@ -528,9 +537,8 @@ proyecto", "ayúdame a especificar lo que quiero construir").
    Contexts*. arXiv:2307.03172. <https://arxiv.org/abs/2307.03172>
 2. Anthropic (2025). *Effective context engineering for AI agents*.
    <https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents>
-3. Jaroslawicz, D., Whiting, B., Shah, P. y Maamari, K. (2025). *How Many
-   Instructions Can LLMs Follow at Once?* NeurIPS 2025. arXiv:2507.11538.
-   <https://arxiv.org/abs/2507.11538>
+3. *Classifier Context Rot: Monitor Performance Degrades with Context Length*
+   (2026, mayo). arXiv:2605.12366. <https://arxiv.org/abs/2605.12366>
 4. McMillan, D. (2026). *Instruction Adherence in Coding Agent Configuration
    Files: A Factorial Study of Four File-Structure Variables*.
    arXiv:2605.10039. <https://arxiv.org/abs/2605.10039>
@@ -604,6 +612,9 @@ proyecto", "ayúdame a especificar lo que quiero construir").
     intelligence boost*. <https://claude.com/blog/the-advisor-strategy>
 32. Aider (2024, 26 de septiembre). *Separating code reasoning and editing*.
     <https://aider.chat/2024/09/26/architect.html>
+33. Zeng, W. et al. (2026, febrero). *LOCA-bench: Benchmarking Language Agents
+    Under Controllable and Extreme Context Growth*. arXiv:2602.07962.
+    <https://arxiv.org/abs/2602.07962>
 
 ---
 
