@@ -17,6 +17,64 @@ interpretación propia, y no conclusión de una fuente, se indica como tal.
 
 ---
 
+## Organización básica de un proyecto
+
+Un proyecto que usa esta configuración separa tres documentos. Cada uno tiene un
+lector distinto, responde a una pregunta distinta y se lee en un momento
+distinto:
+
+| Archivo | Para quién | Responde a | Cuándo se lee | Ejemplo: web para mostrar simuladores |
+|---|---|---|---|---|
+| `README.md` | Personas que llegan al repositorio | Qué es esto y cómo lo pongo en marcha | Cuando alguien abre el repositorio | "Web que muestra los simuladores del centro. Para ejecutarla: `npm install` y `npm run dev`." |
+| `docs/especificacion.md` | Tú y el agente, al construir | Qué debe hacer exactamente | Antes de cada tarea que añada o cambie funcionalidad | "F1. Catálogo: muestra los simuladores publicados. Criterio: si no hay ninguno, aparece un mensaje en lugar de una lista vacía." |
+| `CLAUDE.md` | El agente | Cómo se trabaja en este repositorio | Al empezar cada sesión, de forma automática | "Para verificar, ejecuta `scripts/verificar.sh`. No uses librerías de componentes externas." |
+
+**Por qué separarlos:**
+
+- **Nivel de detalle.** El README presenta el proyecto en pocas líneas. La
+  especificación baja a cada funcionalidad, con sus criterios de aceptación, lo
+  que queda fuera y las preguntas abiertas.
+- **Uso.** Los criterios de la especificación son los que se usan para
+  comprobar si una tarea está bien hecha (sección 2.4). Un texto de presentación
+  no sirve para eso.
+- **Coste.** `CLAUDE.md` se carga en cada sesión, así que debe ser breve. La
+  especificación y el README solo se leen cuando hacen falta (sección 2.1).
+- **Ritmo de cambio.** La especificación crece con cada funcionalidad; el README
+  apenas cambia; `CLAUDE.md` cambia solo cuando cambia la forma de trabajar.
+
+Lo único que comparten es el objetivo: el primer párrafo del README puede ser un
+resumen del apartado "Objetivo" de la especificación. Lo natural es escribir
+primero la especificación y sacar de ella esas líneas.
+
+*Sobre el nombre de `CLAUDE.md`:* Claude Code carga ese archivo porque la
+herramienta está programada para buscarlo, no porque el modelo esté entrenado
+para ello. Si se prefiere un nombre independiente de la herramienta, existe el
+formato abierto `AGENTS.md`, que reconocen otros agentes de programación [9]; en
+ese caso `CLAUDE.md` puede contener solo la línea `@AGENTS.md` para importarlo
+[12].
+
+**Mapa de archivos:**
+
+```
+proyecto/
+├── README.md                    Presentación del proyecto, para personas
+├── CLAUDE.md                    Cómo se trabaja; se carga en cada sesión
+├── docs/
+│   ├── especificacion.md        Qué debe hacer el proyecto
+│   └── adr/                     Por qué está construido así (decisiones)
+├── .claude/
+│   ├── agents/verificador.md    Verificación independiente de cada cambio
+│   ├── skills/                  Conocimiento que se carga cuando hace falta
+│   ├── hooks/                   Reglas que se cumplen siempre
+│   └── settings.json            Registro de hooks y permisos
+└── scripts/verificar.sh         Build, lint, tipos y tests en un comando
+```
+
+En este repositorio el README explica teoría porque el repositorio es la propia
+configuración. En un proyecto que la use, el README presenta ese proyecto.
+
+---
+
 ## 1. Tres limitaciones de partida
 
 Todo el diseño responde a tres limitaciones bien documentadas de los modelos de
@@ -218,13 +276,10 @@ el contexto entre sesiones como una de las claves de sus agentes de programació
 de larga duración [7].
 
 Conviene distinguir tres tipos de memoria, porque cada una responde a una
-pregunta distinta y se lee en un momento distinto:
-
-| Artefacto | Pregunta que responde | Cuándo se lee |
-|---|---|---|
-| Especificación (`docs/especificacion.md`) | Qué debe hacer el proyecto | Antes de tareas que añadan o cambien funcionalidad |
-| ADR (`docs/adr/`) | Por qué está construido así | Antes de decisiones estructurales |
-| `CLAUDE.md` | Cómo se trabaja en el repositorio | En cada sesión |
+pregunta distinta: qué debe hacer el proyecto (la especificación), por qué está
+construido así (los ADR) y cómo se trabaja en él (`CLAUDE.md`). La sección
+[Organización básica](#organización-básica-de-un-proyecto) detalla cómo se
+reparten.
 
 La especificación cumple el papel que en la ingeniería de requisitos clásica
 tienen los requisitos con criterios de aceptación. El propio trabajo de
