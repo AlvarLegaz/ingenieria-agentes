@@ -38,6 +38,7 @@ interpretación propia, y no conclusión de una fuente, se indica como tal.
   - [1. Copiar la configuración a tu proyecto](#1-copiar-la-configuración-a-tu-proyecto)
   - [2. Comprobar los hooks](#2-comprobar-los-hooks)
   - [3. Empezar a trabajar con Claude Code](#3-empezar-a-trabajar-con-claude-code)
+- [Autoevaluación](#autoevaluación)
 - [Referencias](#referencias)
 
 ---
@@ -473,6 +474,25 @@ Abre `claude` en la carpeta del proyecto y sigue este orden:
 
 Los skills también se activan si los pides con palabras ("inicializa el
 proyecto", "ayúdame a especificar lo que quiero construir").
+
+---
+
+## Autoevaluación
+
+`docs/autoevaluacion.html` es un test interactivo de 50 preguntas sobre la
+teoría de este documento, organizado en siete bloques: contexto y `CLAUDE.md`,
+un solo agente, subagentes, verificación, hooks, contratos, y memoria y
+medición. Cada respuesta se corrige al momento con su explicación y la
+referencia de la que procede, con la misma numeración que la lista de
+[Referencias](#referencias). Al terminar muestra la nota por bloque y permite
+repasar solo las preguntas falladas.
+
+**Abrirlo en el navegador:** <https://alvarlegaz.github.io/ingenieria-agentes/autoevaluacion.html>
+(requiere tener GitHub Pages activado en el repositorio, publicando la carpeta
+`docs/` de la rama `main`).
+
+**Abrirlo en local:** descarga `docs/autoevaluacion.html` y ábrelo con el
+navegador. No necesita conexión ni instalación.
 
 ---
 
