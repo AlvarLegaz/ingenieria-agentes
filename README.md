@@ -38,8 +38,8 @@ interpretación propia, y no conclusión de una fuente, se indica como tal.
   - [1. Copiar la configuración a tu proyecto](#1-copiar-la-configuración-a-tu-proyecto)
   - [2. Comprobar los hooks](#2-comprobar-los-hooks)
   - [3. Empezar a trabajar con Claude Code](#3-empezar-a-trabajar-con-claude-code)
-- [Autoevaluación](#autoevaluación)
 - [Referencias](#referencias)
+- [Autoevaluación](#autoevaluación)
 
 ---
 
@@ -477,25 +477,6 @@ proyecto", "ayúdame a especificar lo que quiero construir").
 
 ---
 
-## Autoevaluación
-
-`docs/autoevaluacion.html` es un test interactivo de 50 preguntas sobre la
-teoría de este documento, organizado en siete bloques: contexto y `CLAUDE.md`,
-un solo agente, subagentes, verificación, hooks, contratos, y memoria y
-medición. Cada respuesta se corrige al momento con su explicación y la
-referencia de la que procede, con la misma numeración que la lista de
-[Referencias](#referencias). Al terminar muestra la nota por bloque y permite
-repasar solo las preguntas falladas.
-
-**Abrirlo en el navegador:** <https://alvarlegaz.github.io/ingenieria-agentes/autoevaluacion.html>
-(requiere tener GitHub Pages activado en el repositorio, publicando la carpeta
-`docs/` de la rama `main`).
-
-**Abrirlo en local:** descarga `docs/autoevaluacion.html` y ábrelo con el
-navegador. No necesita conexión ni instalación.
-
----
-
 ## Referencias
 
 1. Liu, N. F., Lin, K., Hewitt, J., Paranjape, A., Bevilacqua, M., Petroni, F. y
@@ -573,3 +554,20 @@ navegador. No necesita conexión ni instalación.
 29. Nygard, M. (2011, 15 de noviembre). *Documenting Architecture Decisions*.
     Cognitect.
     <https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions>
+
+---
+
+## Autoevaluación
+
+Test interactivo de 50 preguntas sobre la teoría de este documento:
+
+**▶ [Hacer la autoevaluación](https://alvarlegaz.github.io/ingenieria-agentes/autoevaluacion.html)**
+
+Las preguntas se agrupan en siete bloques: contexto y `CLAUDE.md`, un solo
+agente, subagentes, verificación, hooks, contratos, y memoria y medición. Cada
+respuesta se corrige al momento, con su explicación y la referencia de la que
+procede, con la misma numeración que la lista anterior. Al terminar muestra la
+nota por bloque y permite repasar solo las preguntas falladas.
+
+El test está en `docs/autoevaluacion.html` y también funciona sin conexión:
+descárgalo y ábrelo con el navegador.
