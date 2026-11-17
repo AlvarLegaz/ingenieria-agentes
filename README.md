@@ -245,6 +245,9 @@ tomadas o las deshaga sin saber por qué se tomaron.
    que no apliquen.
 4. Comprueba con `/agents` que los subagentes aparecen.
 
+Para repasar la teoría hay un test de 50 preguntas en
+`docs/autoevaluacion.html`: ábrelo en el navegador.
+
 ---
 
 ## Referencias

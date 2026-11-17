@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Autoevaluación: ingeniería de agentes para programación</title>
+<style>
+  :root {
+    --bg: #f7f6f2; --card: #ffffff; --ink: #1f1e1b; --muted: #6b6860; --line: #e3e0d8;
+    --accent: #3a5a8c; --accent-soft: #e6ecf5; --ok: #2e7d4f; --ok-soft: #e3f2e8;
+    --ko: #b23b3b; --ko-soft: #f8e5e3; --radius: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #17171a; --card: #212126; --ink: #ecebe6; --muted: #a09e96; --line: #33333a;
+      --accent: #8fb0e3; --accent-soft: #263248; --ok: #6cc28f; --ok-soft: #1d3326;
+      --ko: #ec8a85; --ko-soft: #3a2222;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  main { max-width: 720px; margin: 0 auto; padding: 20px 16px 48px; }
+  h1 { font-size: 1.35rem; margin: 0 0 4px; line-height: 1.3; }
+  .sub { color: var(--muted); margin: 0 0 18px; font-size: .95rem; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .chip {
+    border: 1px solid var(--line); background: var(--card); color: var(--ink);
+    border-radius: 999px; padding: 6px 12px; font-size: .85rem; cursor: pointer;
+  }
+  .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+  .bar { height: 6px; background: var(--line); border-radius: 99px; overflow: hidden; margin-bottom: 6px; }
+  .bar > div { height: 100%; background: var(--accent); width: 0; transition: width .25s; }
+  .meta { display: flex; justify-content: space-between; color: var(--muted); font-size: .85rem; margin-bottom: 14px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; }
+  .section { color: var(--accent); font-size: .8rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+  .q { font-size: 1.1rem; font-weight: 600; margin: 6px 0 16px; line-height: 1.4; }
+  .opts { display: grid; gap: 8px; }
+  .opt {
+    text-align: left; width: 100%; border: 1px solid var(--line); background: var(--card); color: var(--ink);
+    border-radius: 10px; padding: 12px 14px; font: inherit; cursor: pointer; display: flex; gap: 10px;
+  }
+  .opt:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-soft); }
+  .opt:focus-visible, .chip:focus-visible, .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .opt .k { color: var(--muted); font-weight: 600; min-width: 1.2em; }
+  .opt:disabled { cursor: default; }
+  .opt.ok { border-color: var(--ok); background: var(--ok-soft); }
+  .opt.ko { border-color: var(--ko); background: var(--ko-soft); }
+  .fb { margin-top: 16px; padding: 14px; border-radius: 10px; display: none; }
+  .fb.show { display: block; }
+  .fb.ok { background: var(--ok-soft); }
+  .fb.ko { background: var(--ko-soft); }
+  .fb strong { display: block; margin-bottom: 4px; }
+  .fb .ref { margin-top: 8px; font-size: .85rem; color: var(--muted); }
+  .fb a { color: var(--accent); }
+  .nav { display: flex; gap: 8px; justify-content: space-between; margin-top: 16px; }
+  .btn {
+    border: 1px solid var(--accent); background: var(--accent); color: var(--bg);
+    border-radius: 10px; padding: 10px 16px; font: inherit; font-weight: 600; cursor: pointer;
+  }
+  .btn.ghost { background: transparent; color: var(--accent); }
+  .btn:disabled { opacity: .4; cursor: default; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 4px; font-size: .95rem; }
+  td, th { padding: 8px 4px; border-bottom: 1px solid var(--line); text-align: left; }
+  td.n { text-align: right; font-variant-numeric: tabular-nums; }
+  .big { font-size: 2.2rem; font-weight: 700; margin: 4px 0; }
+  .hint { color: var(--muted); font-size: .8rem; margin-top: 14px; text-align: center; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Autoevaluación: ingeniería de agentes para programación</h1>
+  <p class="sub">50 preguntas sobre la teoría del README. Cada respuesta se corrige al momento con su explicación y la fuente.</p>
+
+  <div class="chips" id="chips" role="group" aria-label="Filtrar por bloque"></div>
+  <div class="bar"><div id="bar"></div></div>
+  <div class="meta"><span id="pos"></span><span id="score"></span></div>
+
+  <section class="card" id="view" aria-live="polite"></section>
+  <p class="hint">Atajos: teclas 1–4 para responder, Enter o → para avanzar.</p>
+</main>
+
+<script>
+const REFS = {
+  1: ["Liu et al. (2023). Lost in the Middle", "https://arxiv.org/abs/2307.03172"],
+  2: ["Anthropic (2025). Effective context engineering for AI agents", "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents"],
+  3: ["Jaroslawicz et al. (2025). How Many Instructions Can LLMs Follow at Once?", "https://arxiv.org/abs/2507.11538"],
+  4: ["Anthropic. Documentación de Claude Code: memoria y CLAUDE.md", "https://code.claude.com/docs/en/memory"],
+  5: ["Anthropic (2024). Building effective agents", "https://www.anthropic.com/engineering/building-effective-agents"],
+  6: ["Anthropic (2025). How we built our multi-agent research system", "https://www.anthropic.com/engineering/multi-agent-research-system"],
+  7: ["Yan, W. (2025). Don't Build Multi-Agents. Cognition", "https://cognition.ai/blog/dont-build-multi-agents"],
+  8: ["Yan, W. Multi-Agents: What's Actually Working. Cognition", "https://cognition.ai/blog/multi-agents-working"],
+  9: ["Cemri et al. (2025). Why Do Multi-Agent LLM Systems Fail?", "https://arxiv.org/abs/2503.13657"],
+  10: ["Anthropic. Documentación de Claude Code: subagentes", "https://code.claude.com/docs/en/sub-agents"],
+  11: ["Huang et al. (2024). LLMs Cannot Self-Correct Reasoning Yet", "https://arxiv.org/abs/2310.01798"],
+  12: ["Panickssery et al. (2024). LLM Evaluators Recognize and Favor Their Own Generations", "https://arxiv.org/abs/2404.13076"],
+  13: ["Anthropic. Best practices for Claude Code", "https://code.claude.com/docs/en/best-practices"],
+  14: ["Meyer, B. (1992). Applying Design by Contract. IEEE Computer", "https://doi.org/10.1109/2.161279"],
+  15: ["Parnas, D. L. (1972). On the Criteria To Be Used in Decomposing Systems into Modules", "https://doi.org/10.1145/361598.361623"],
+  16: ["Shingo, S. (1986). Zero Quality Control: Source Inspection and the Poka-Yoke System", ""],
+  17: ["Grout y Downs. A Brief Tutorial on Mistake-proofing, Poka-Yoke, and ZQC", "https://mistakeproofing.com/a-brief-tutorial-on-mistake-proofing-poka-yoke-and-zqc/"],
+  18: ["Minsky (2010) / Wlaschin. Making illegal states unrepresentable", "https://fsharpforfunandprofit.com/posts/designing-with-types-making-illegal-states-unrepresentable/"],
+  19: ["Anthropic. Documentación de Claude Code: hooks", "https://code.claude.com/docs/en/hooks-guide"],
+  20: ["Nygard, M. (2011). Documenting Architecture Decisions", "https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions"],
+  0: ["README del repositorio (aplicación de la teoría)", ""]
+};
+
+const SECTIONS = [
+  "Contexto finito", "Cuándo usar varios agentes", "Subagentes", "Verificación",
+  "Contratos", "Hacer el error imposible", "ADR", "Limitaciones"
+];
+
+// s: bloque, q: pregunta, o: opciones (la primera es la correcta; se barajan al mostrar), e: explicación, r: referencias
+const Q = [
+  // 1. Contexto finito
+  {s:0, q:"Según Liu et al. («Lost in the Middle»), ¿dónde rinde mejor un modelo cuando la información relevante está dentro de un contexto largo?",
+   o:["Al principio o al final del contexto","En la parte central del contexto","Da igual: la posición no influye","Solo al final del contexto"],
+   e:"El rendimiento es mayor cuando la información está al principio o al final, y cae de forma notable cuando está en medio.", r:[1]},
+  {s:0, q:"En el mismo estudio, ¿qué pasa con el rendimiento cuando el contexto se hace más largo, incluso en modelos diseñados para contextos largos?",
+   o:["Disminuye de forma sustancial","Se mantiene estable","Mejora, porque hay más información","Solo empeora en modelos pequeños"],
+   e:"Los autores observan que el rendimiento cae al crecer la entrada, también en modelos explícitamente pensados para contextos largos.", r:[1]},
+  {s:0, q:"¿Cómo llama Anthropic a la pérdida de precisión de un modelo a medida que crece su contexto?",
+   o:["Context rot","Context drift","Attention collapse","Token decay"],
+   e:"Anthropic usa «context rot» para describir que la capacidad de recuperar información se degrada al aumentar el tamaño del contexto.", r:[2]},
+  {s:0, q:"Según Anthropic, ¿cómo debe tratarse el contexto al diseñar agentes?",
+   o:["Como un recurso finito con rendimientos marginales decrecientes","Como un recurso prácticamente ilimitado en modelos actuales","Como un problema exclusivamente de coste económico","Como algo que solo importa en el prompt de sistema"],
+   e:"La conclusión del artículo es que cada token adicional aporta menos, por lo que hay que seleccionar el conjunto más pequeño de información útil.", r:[2]},
+  {s:0, q:"En el benchmark IFScale, con 500 instrucciones simultáneas, ¿qué nivel de cumplimiento alcanzaron los mejores modelos?",
+   o:["Un 68 %","Un 95 %","Un 40 %","Un 85 %"],
+   e:"Ni siquiera los mejores modelos pasaron del 68 % con la densidad máxima de 500 instrucciones.", r:[3]},
+  {s:0, q:"Además de la caída de rendimiento, ¿qué sesgo detectó IFScale al aumentar el número de instrucciones?",
+   o:["Preferencia por las primeras instrucciones","Preferencia por las últimas instrucciones","Preferencia por las instrucciones más cortas","Ninguno: los errores eran aleatorios"],
+   e:"Los modelos tendían a cumplir mejor las instrucciones que aparecían antes.", r:[3]},
+  {s:0, q:"¿Qué recomienda la documentación de Claude Code sobre el tamaño de cada archivo CLAUDE.md?",
+   o:["Mantenerlo por debajo de 200 líneas","Mantenerlo por debajo de 500 líneas","No hay recomendación de tamaño","Mantenerlo por debajo de 25 líneas"],
+   e:"La documentación indica que los archivos largos consumen más contexto y reducen la adherencia.", r:[4]},
+  {s:0, q:"¿Por qué escribir una regla en CLAUDE.md no garantiza que se cumpla?",
+   o:["Porque su contenido es contexto para el modelo, no configuración impuesta","Porque Claude Code solo lee las primeras 20 líneas","Porque las reglas solo se aplican a los subagentes","Porque se ignora si no está en inglés"],
+   e:"La documentación recuerda que el modelo sigue esas instrucciones con mayor o menor fiabilidad según cómo estén escritas.", r:[4]},
+  {s:0, q:"¿Por qué en este repositorio los roles están en .claude/agents/ y no dentro de CLAUDE.md?",
+   o:["Para que solo se carguen en contexto cuando se usa ese agente","Porque Claude Code no permite texto largo en CLAUDE.md","Para que el modelo los ignore","Porque es obligatorio para que funcionen los skills"],
+   e:"CLAUDE.md se carga en cada sesión; lo que no aplica siempre se mueve a archivos que se cargan bajo demanda.", r:[0,4]},
+  {s:0, q:"¿Por qué se eliminaron reglas como «escribe código limpio» o «no sobreingenierices»?",
+   o:["Repiten el comportamiento por defecto y ocupan contexto sin cambiar la conducta","Porque contradicen la documentación de Anthropic","Porque el modelo las interpreta al revés","Porque solo funcionan escritas en mayúsculas"],
+   e:"Cada línea compite por la atención del modelo; una que no cambia su conducta solo diluye las importantes.", r:[0,2]},
+
+  // 2. Cuándo usar varios agentes
+  {s:1, q:"¿Cuál es la recomendación central de «Building effective agents» de Anthropic?",
+   o:["Buscar la solución más simple y añadir complejidad solo cuando haga falta","Usar siempre un framework multiagente","Empezar por agentes autónomos y simplificar después","Dividir toda tarea en al menos tres agentes"],
+   e:"La guía añade que a veces lo correcto es no construir un sistema agéntico.", r:[5]},
+  {s:1, q:"¿Qué distingue un «flujo de trabajo» de un «agente» según Anthropic?",
+   o:["El flujo sigue caminos predefinidos en código; el agente dirige su propio proceso y uso de herramientas","El flujo usa varios modelos; el agente usa uno solo","El flujo no usa herramientas; el agente sí","No hay diferencia práctica entre ambos"],
+   e:"Los flujos aportan predictibilidad en tareas bien definidas; los agentes, flexibilidad cuando el camino no se puede prever.", r:[5]},
+  {s:1, q:"En la evaluación interna de Anthropic, ¿cuánto mejoró su sistema multiagente de investigación frente a un único agente?",
+   o:["Un 90,2 %","Un 15 %","Un 4 %","Un 200 %"],
+   e:"El sistema con un agente principal y subagentes superó al agente único en un 90,2 % en su evaluación interna de investigación.", r:[6]},
+  {s:1, q:"Según Anthropic, ¿cuántos tokens consume aproximadamente un sistema multiagente comparado con una conversación normal?",
+   o:["Unas 15 veces más","Aproximadamente los mismos","La mitad, gracias al paralelismo","Unas 100 veces más"],
+   e:"Por eso solo compensa en tareas cuyo valor justifica ese coste.", r:[6]},
+  {s:1, q:"¿En qué tipo de tareas destacan los sistemas multiagente según Anthropic?",
+   o:["Muy paralelizables, con información que excede un contexto y muchas herramientas complejas","Tareas cortas con un único paso","Tareas que requieren que todos los agentes compartan el mismo contexto","Cualquier tarea de programación"],
+   e:"Son las condiciones en las que repartir el trabajo entre varias ventanas de contexto aporta más de lo que cuesta.", r:[6]},
+  {s:1, q:"¿Por qué Anthropic advierte que la programación encaja peor que la investigación en sistemas multiagente?",
+   o:["Tiene menos partes realmente paralelizables y los agentes aún coordinan mal en tiempo real","Porque los modelos no saben programar en paralelo","Porque el código no cabe en una ventana de contexto","Porque los tests no se pueden ejecutar en subagentes"],
+   e:"Lo dice en el mismo artículo en que presenta los buenos resultados de su sistema de investigación.", r:[6]},
+  {s:1, q:"¿Cuál es la crítica principal de Cognition en «Don't Build Multi-Agents»?",
+   o:["Las decisiones quedan dispersas y el contexto no se comparte lo suficiente entre agentes","Los sistemas multiagente son demasiado caros de alojar","Los modelos actuales no pueden llamar a otros modelos","Los agentes únicos no pueden usar herramientas"],
+   e:"Cada agente decide sin ver lo que han decidido los demás, y los resultados acaban sin encajar.", r:[7]},
+  {s:1, q:"En un artículo posterior, ¿qué tipo de sistema multiagente reconoce Cognition que sí funciona?",
+   o:["Varios agentes aportan análisis, pero las escrituras se mantienen en un solo hilo","Muchos agentes que escriben código en paralelo sin coordinación","Agentes que votan qué cambio aplicar","Un agente por archivo del repositorio"],
+   e:"El problema estaba en tener varios agentes tomando decisiones de escritura a la vez.", r:[8]},
+  {s:1, q:"Según Cemri et al., ¿cómo suele ser la mejora de los sistemas multiagente sobre un único agente en benchmarks populares?",
+   o:["A menudo mínima","Siempre superior al 50 %","Negativa en todos los casos","Idéntica en todas las tareas"],
+   e:"Esa brecha entre expectativas y resultados es la que motiva su análisis de fallos.", r:[9]},
+  {s:1, q:"¿Qué es MAST, propuesto por Cemri et al.?",
+   o:["Una taxonomía de 14 modos de fallo de sistemas multiagente, en 3 categorías","Un framework para crear subagentes","Un benchmark de programación","Un protocolo de comunicación entre agentes"],
+   e:"Se construyó analizando trazas reales con anotadores expertos y alto grado de acuerdo entre ellos.", r:[9]},
+  {s:1, q:"En la política de este repositorio, ¿qué se hace con una tarea TRIVIAL?",
+   o:["Resolverla directamente, sin subagentes","Pasarla al arquitecto","Delegarla al programador y al tester","Activar todos los agentes para revisarla"],
+   e:"Coordinar agentes tiene un coste que en tareas pequeñas supera al beneficio.", r:[0,5]},
+  {s:1, q:"¿Y con una tarea COMPLEJA?",
+   o:["Primero interviene el arquitecto y se definen contratos antes de implementar","Se implementa directamente y luego se revisa","Se reparte entre todos los agentes en paralelo","Se resuelve sin subagentes para ahorrar tokens"],
+   e:"Las decisiones estructurales se toman antes, para que el trabajo posterior no las contradiga.", r:[0]},
+  {s:1, q:"¿Qué condiciones exige el repositorio para paralelizar trabajo entre agentes?",
+   o:["Que no compartan archivos, que los contratos estén definidos y que no dependan de decisiones pendientes","Que haya al menos tres agentes disponibles","Que la tarea sea COMPLEJA","Que todos usen el mismo modelo"],
+   e:"Es la forma práctica de evitar el problema de escrituras concurrentes que describe Cognition.", r:[0,7,8]},
+  {s:1, q:"¿Cuáles son los tres motivos válidos para delegar en un subagente según el CLAUDE.md?",
+   o:["Especialización, paralelismo real o verificación independiente","Velocidad, coste y comodidad","Que la tarea tenga más de 100 líneas","Que el usuario no esté presente"],
+   e:"Si delegar no aporta ninguna de las tres, lo más eficiente es hacerlo directamente.", r:[0]},
+
+  // 3. Subagentes
+  {s:2, q:"En Claude Code, ¿qué tiene cada subagente de forma independiente?",
+   o:["Su propia ventana de contexto, prompt de sistema, herramientas y permisos","Solo un nombre distinto; comparte todo lo demás","Su propio repositorio","Su propia copia de CLAUDE.md editable"],
+   e:"Ese aislamiento evita que el trabajo auxiliar llene el contexto de la conversación principal.", r:[10]},
+  {s:2, q:"¿Cómo describe Anthropic el beneficio de los subagentes en su sistema de investigación?",
+   o:["Como una forma de compresión: exploran en paralelo y devuelven solo lo más importante","Como una forma de duplicar la memoria del modelo","Como una manera de evitar llamadas a herramientas","Como un método para entrenar al modelo principal"],
+   e:"Cada subagente procesa mucha información en su contexto y entrega un resumen al agente principal.", r:[6]},
+  {s:2, q:"¿Dónde se guardan los subagentes de un proyecto en Claude Code?",
+   o:[".claude/agents/","docs/agents/",".github/agents/","src/agents/"],
+   e:"Son archivos Markdown con frontmatter, versionables junto al proyecto.", r:[10]},
+  {s:2, q:"¿Por qué el agente ux no tiene herramientas de edición en este repositorio?",
+   o:["Por mínimo privilegio: especifica el comportamiento, no implementa","Porque Claude Code no permite editar a ningún subagente","Para que sea más rápido","Porque usa un modelo sin acceso a archivos"],
+   e:"Limitar herramientas convierte en restricción técnica lo que de otro modo sería una instrucción de texto.", r:[0,10]},
+  {s:2, q:"Al delegar en un subagente, ¿qué información conviene pasarle?",
+   o:["Objetivo, archivos relevantes, contrato aplicable, restricciones y resultado esperado","El historial completo de la conversación","Todo el repositorio para que tenga contexto","Solo el nombre de la tarea"],
+   e:"Pasar el historial completo reproduciría dentro del subagente el problema de contexto que se quiere evitar.", r:[0,2]},
+
+  // 4. Verificación
+  {s:3, q:"Según Huang et al., ¿qué ocurre cuando un modelo intenta corregir su razonamiento sin realimentación externa?",
+   o:["Le cuesta corregirse y a veces su rendimiento empeora","Corrige casi todos sus errores","Mejora siempre un poco","Se niega a cambiar la respuesta"],
+   e:"Los autores llaman a esto autocorrección intrínseca y muestran que no es fiable para razonamiento.", r:[11]},
+  {s:3, q:"¿Qué es el «sesgo de autopreferencia» descrito por Panickssery et al.?",
+   o:["Un modelo evaluador puntúa mejor sus propios textos que otros de calidad equivalente","Un modelo prefiere las instrucciones del usuario a las del sistema","Un modelo prefiere respuestas cortas","Un modelo prefiere repetir su primera respuesta"],
+   e:"Los evaluadores humanos consideraban esos textos de calidad equivalente, por lo que la diferencia de nota no se justificaba.", r:[12]},
+  {s:3, q:"¿Con qué capacidad relacionan Panickssery et al. el sesgo de autopreferencia?",
+   o:["Con la capacidad del modelo de reconocer sus propios textos","Con el tamaño de la ventana de contexto","Con la temperatura de muestreo","Con el idioma del texto evaluado"],
+   e:"Encontraron una correlación entre lo bien que un modelo reconoce sus textos y lo mucho que los favorece.", r:[12]},
+  {s:3, q:"Según la guía de buenas prácticas de Claude Code, ¿qué es lo que más mejora los resultados?",
+   o:["Darle al modelo una forma de verificar su trabajo: tests, capturas o salidas esperadas","Escribir prompts más largos","Usar siempre el modelo más grande","Activar más subagentes"],
+   e:"Con una comprobación ejecutable, el modelo puede detectar y corregir sus fallos antes de entregar.", r:[13]},
+  {s:3, q:"Según la misma guía, ¿qué riesgo hay si el modelo no tiene criterios de éxito claros?",
+   o:["Que produzca algo que parece correcto pero no funciona","Que se niegue a terminar la tarea","Que consuma menos tokens","Que pida permiso para cada archivo"],
+   e:"Sin un criterio objetivo, «parece terminado» sustituye a «funciona».", r:[13]},
+  {s:3, q:"¿Por qué el tester es un agente separado del que implementa?",
+   o:["Para que el trabajo no lo apruebe quien lo hizo, dados los límites de la autocorrección y la autopreferencia","Porque un agente no puede ejecutar tests y código a la vez","Para ahorrar tokens","Porque Claude Code lo exige"],
+   e:"Es la aplicación directa de los resultados de Huang et al. y Panickssery et al.", r:[0,11,12]},
+  {s:3, q:"Si una verificación no puede ejecutarse, ¿qué exige el CLAUDE.md del repositorio?",
+   o:["Declararlo expresamente junto con el riesgo que implica","Darla por superada si el código compila","Eliminar el test que falla","Omitirlo en el resumen final"],
+   e:"La regla busca que nunca se confunda implementación terminada con funcionalidad verificada.", r:[0]},
+
+  // 5. Contratos
+  {s:4, q:"¿Quién formuló el «diseño por contrato»?",
+   o:["Bertrand Meyer","David Parnas","Michael Nygard","Shigeo Shingo"],
+   e:"Lo desarrolló en torno al lenguaje Eiffel y lo expuso en IEEE Computer en 1992.", r:[14]},
+  {s:4, q:"En el diseño por contrato, ¿qué establece un contrato entre dos componentes?",
+   o:["Obligaciones y beneficios explícitos para ambas partes","Solo los tipos de los parámetros","El orden de ejecución de las funciones","La licencia de uso del código"],
+   e:"Quien llama garantiza las precondiciones; quien implementa garantiza las postcondiciones.", r:[14]},
+  {s:4, q:"¿Qué criterio propuso Parnas en 1972 para dividir un sistema en módulos?",
+   o:["Que cada módulo oculte una decisión de diseño que pueda cambiar (ocultación de información)","Que cada módulo corresponda a un paso del proceso","Que todos los módulos tengan el mismo tamaño","Que cada módulo lo escriba un programador distinto"],
+   e:"Así una implementación puede sustituirse sin afectar al resto de módulos.", r:[15]},
+  {s:4, q:"¿Cómo exige el skill «contrato» expresar un contrato?",
+   o:["Primero en forma ejecutable: tipos, JSON Schema, OpenAPI o test de contrato","Solo como documento Markdown","Como comentario en el código","Como mensaje al orquestador"],
+   e:"El documento solo recoge lo que la forma ejecutable no puede expresar.", r:[0]},
+  {s:4, q:"¿Qué hay que hacer antes de cambiar un contrato compartido?",
+   o:["Explicar el motivo, identificar a los consumidores y, si es estructural, pasarlo por el arquitecto","Cambiarlo y avisar si fallan los tests","Pedir permiso al tester","Crear un ADR por cada consumidor"],
+   e:"Un contrato compartido afecta a otros módulos o agentes; cambiarlo en solitario rompe sus supuestos.", r:[0,14]},
+
+  // 6. Hacer el error imposible
+  {s:5, q:"¿Qué es un dispositivo poka-yoke?",
+   o:["Un mecanismo que impide cometer un error o lo hace evidente al instante","Un sistema de inspección estadística por muestreo","Un registro de incidencias","Un método de formación de operarios"],
+   e:"Shingo lo desarrolló como parte de su sistema de Control de Calidad Cero.", r:[16,17]},
+  {s:5, q:"¿Qué caracteriza a la «inspección en la fuente» de Shingo?",
+   o:["Comprueba que se dan las condiciones correctas antes de producir, no los defectos después","Inspecciona el producto final al azar","Delega la inspección en el cliente","Revisa solo los productos devueltos"],
+   e:"Es el equivalente a validar antes de ejecutar en lugar de detectar el fallo después.", r:[17]},
+  {s:5, q:"¿A quién se atribuye el principio «make illegal states unrepresentable»?",
+   o:["Yaron Minsky","Bertrand Meyer","Martin Fowler","Barbara Liskov"],
+   e:"Lo popularizó en su charla «Effective ML» sobre OCaml; propone modelar datos para que los estados inválidos no se puedan ni escribir.", r:[18]},
+  {s:5, q:"Según la documentación de Claude Code, ¿qué aportan los hooks frente a una instrucción en CLAUDE.md?",
+   o:["Control determinista: la acción ocurre siempre, sin depender de que el modelo decida hacerla","Más contexto para el modelo","Mejores explicaciones en las respuestas","Acceso a modelos más grandes"],
+   e:"Por eso lo que deba cumplirse siempre conviene implementarlo como hook y no como regla escrita.", r:[19]},
+  {s:5, q:"Ante un error relevante, ¿qué orden de prioridad sigue este repositorio?",
+   o:["Rediseñar, restringir, automatizar un test y, como último recurso, documentar","Documentar, automatizar, restringir y rediseñar","Automatizar siempre primero","Documentar y esperar a que se repita"],
+   e:"Una regla escrita es la protección más débil, porque depende de que alguien la recuerde.", r:[0,16,18,19]},
+
+  // 7. ADR
+  {s:6, q:"¿Quién propuso los Architecture Decision Records y cuándo?",
+   o:["Michael Nygard, en 2011","Bertrand Meyer, en 1992","David Parnas, en 1972","Martin Fowler, en 2020"],
+   e:"Lo publicó en el blog de Cognitect en noviembre de 2011.", r:[20]},
+  {s:6, q:"¿Dónde se guardan los ADR según la propuesta original?",
+   o:["En el repositorio, junto al código al que afectan","En una wiki externa","En el gestor de incidencias","En el correo del equipo"],
+   e:"Así viajan con el código y cualquier persona o agente puede consultarlos.", r:[20]},
+
+  // 8. Limitaciones
+  {s:7, q:"¿Cuál es la principal limitación de la evidencia cuantitativa sobre sistemas multiagente citada en el README?",
+   o:["Procede sobre todo de tareas de investigación o benchmarks concretos, no de programación real","No existe ningún estudio sobre el tema","Todos los estudios usan modelos de hace diez años","Solo se ha medido en inglés"],
+   e:"Por eso su extrapolación a este repositorio no está medida.", r:[0,6,9]},
+  {s:7, q:"¿Qué naturaleza tiene el límite de 200 líneas para CLAUDE.md?",
+   o:["Es una recomendación de Anthropic, no un umbral obtenido experimentalmente","Es un límite técnico: lo que pasa de 200 líneas no se carga","Es un resultado del benchmark IFScale","Es una norma ISO"],
+   e:"La degradación con el número de instrucciones sí está medida, pero en otra tarea; el 200 concreto es una guía.", r:[0,3,4]}
+];
+
+const LET = ["A","B","C","D"];
+const KEY = "autoeval-agentes-v1";
+let state = { filter: -1, order: [], i: 0, answers: {}, shuffles: {}, review: false };
+
+function shuffle(a) {
+  const r = a.slice();
+  for (let i = r.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [r[i], r[j]] = [r[j], r[i]]; }
+  return r;
+}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+function load() {
+  try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.order && s.order.length) state = s; } catch (e) {}
+}
+function buildOrder() {
+  let ids = Q.map((_, k) => k);
+  if (state.filter >= 0) ids = ids.filter(k => Q[k].s === state.filter);
+  if (state.review) ids = ids.filter(k => state.answers[k] !== undefined && state.answers[k] !== 0);
+  state.order = ids; state.i = 0;
+}
+function perm(k) {
+  if (!state.shuffles[k]) state.shuffles[k] = shuffle([0,1,2,3]);
+  return state.shuffles[k];
+}
+function esc(t) { return t.replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+function refsHtml(r) {
+  return r.map(n => {
+    const [t, u] = REFS[n];
+    const label = n === 0 ? t : "[" + n + "] " + t;
+    return u ? '<a href="' + u + '" target="_blank" rel="noopener">' + esc(label) + "</a>" : esc(label);
+  }).join(" · ");
+}
+
+function renderChips() {
+  const box = document.getElementById("chips");
+  const all = [["Todas", -1]].concat(SECTIONS.map((s, k) => [s, k]));
+  box.innerHTML = all.map(([t, k]) =>
+    '<button class="chip" data-k="' + k + '" aria-pressed="' + (state.filter === k && !state.review) + '">' + esc(t) + "</button>").join("");
+  box.querySelectorAll(".chip").forEach(b => b.onclick = () => {
+    state.filter = +b.dataset.k; state.review = false; buildOrder(); save(); render();
+  });
+}
+
+function stats(ids) {
+  let ok = 0, done = 0;
+  ids.forEach(k => { if (state.answers[k] !== undefined) { done++; if (state.answers[k] === 0) ok++; } });
+  return { ok, done, total: ids.length };
+}
+
+function render() {
+  renderChips();
+  const view = document.getElementById("view");
+  const st = stats(state.order);
+  document.getElementById("bar").style.width = (st.total ? st.done / st.total * 100 : 0) + "%";
+  document.getElementById("score").textContent = st.ok + " aciertos de " + st.done + " respondidas";
+
+  if (!state.order.length) {
+    document.getElementById("pos").textContent = "";
+    view.innerHTML = '<p>No hay preguntas falladas que repasar.</p><div class="nav"><span></span><button class="btn" id="back">Volver al test</button></div>';
+    document.getElementById("back").onclick = () => { state.review = false; buildOrder(); save(); render(); };
+    return;
+  }
+  if (state.i >= state.order.length) return renderSummary();
+
+  const k = state.order[state.i], q = Q[k], p = perm(k), ans = state.answers[k];
+  document.getElementById("pos").textContent = (state.review ? "Repaso · " : "") + "Pregunta " + (state.i + 1) + " de " + state.order.length;
+
+  let h = '<div class="section">' + esc(SECTIONS[q.s]) + '</div><div class="q">' + esc(q.q) + '</div><div class="opts">';
+  p.forEach((oi, pos) => {
+    let cls = "opt";
+    if (ans !== undefined) { if (oi === 0) cls += " ok"; else if (oi === ans) cls += " ko"; }
+    h += '<button class="' + cls + '" data-oi="' + oi + '"' + (ans !== undefined ? " disabled" : "") + '><span class="k">' + LET[pos] + "</span><span>" + esc(q.o[oi]) + "</span></button>";
+  });
+  h += "</div>";
+  if (ans !== undefined) {
+    const good = ans === 0;
+    h += '<div class="fb show ' + (good ? "ok" : "ko") + '"><strong>' + (good ? "Correcto." : "No es esa. La respuesta correcta es la marcada en verde.") + "</strong>" +
+         esc(q.e) + '<div class="ref">Fuente: ' + refsHtml(q.r) + "</div></div>";
+  }
+  h += '<div class="nav"><button class="btn ghost" id="prev"' + (state.i === 0 ? " disabled" : "") + '>← Anterior</button>' +
+       '<button class="btn" id="next"' + (ans === undefined ? " disabled" : "") + ">" + (state.i === state.order.length - 1 ? "Ver resultado" : "Siguiente →") + "</button></div>";
+  view.innerHTML = h;
+
+  view.querySelectorAll(".opt").forEach(b => b.onclick = () => answer(+b.dataset.oi));
+  document.getElementById("prev").onclick = () => { state.i--; save(); render(); };
+  document.getElementById("next").onclick = next;
+}
+
+function answer(oi) {
+  const k = state.order[state.i];
+  if (state.answers[k] !== undefined && !state.review) return;
+  state.answers[k] = oi; save(); render();
+  const n = document.getElementById("next"); if (n) n.focus();
+}
+function next() {
+  const k = state.order[state.i];
+  if (state.answers[k] === undefined) return;
+  state.i++; save(); render();
+}
+
+function renderSummary() {
+  const view = document.getElementById("view");
+  document.getElementById("pos").textContent = "Resultado";
+  const st = stats(state.order);
+  const pct = st.total ? Math.round(st.ok / st.total * 100) : 0;
+  let rows = "";
+  SECTIONS.forEach((s, si) => {
+    const ids = state.order.filter(k => Q[k].s === si);
+    if (!ids.length) return;
+    const x = stats(ids);
+    rows += "<tr><td>" + esc(s) + '</td><td class="n">' + x.ok + " / " + x.total + "</td></tr>";
+  });
+  const fails = Q.map((_, k) => k).filter(k => state.answers[k] !== undefined && state.answers[k] !== 0).length;
+  view.innerHTML =
+    '<div class="section">Resultado</div><div class="big">' + st.ok + " / " + st.total + " (" + pct + " %)</div>" +
+    "<table><thead><tr><th>Bloque</th><th class=\"n\">Aciertos</th></tr></thead><tbody>" + rows + "</tbody></table>" +
+    '<div class="nav"><button class="btn ghost" id="restart">Empezar de nuevo</button>' +
+    '<button class="btn" id="review"' + (fails ? "" : " disabled") + ">Repasar falladas (" + fails + ")</button></div>";
+  document.getElementById("restart").onclick = () => {
+    state = { filter: state.filter, order: [], i: 0, answers: {}, shuffles: {}, review: false };
+    buildOrder(); save(); render();
+  };
+  document.getElementById("review").onclick = () => {
+    const wrong = Q.map((_, k) => k).filter(k => state.answers[k] !== undefined && state.answers[k] !== 0);
+    wrong.forEach(k => { delete state.answers[k]; delete state.shuffles[k]; });
+    state.review = true; state.filter = -1; state.order = wrong; state.i = 0; save(); render();
+  };
+}
+
+document.addEventListener("keydown", e => {
+  if (e.target.closest && e.target.closest("a")) return;
+  if (["1","2","3","4"].includes(e.key)) {
+    const b = document.querySelectorAll(".opt")[+e.key - 1];
+    if (b && !b.disabled) b.click();
+  } else if (e.key === "Enter" || e.key === "ArrowRight") {
+    const n = document.getElementById("next"); if (n && !n.disabled) { e.preventDefault(); n.click(); }
+  } else if (e.key === "ArrowLeft") {
+    const p = document.getElementById("prev"); if (p && !p.disabled) p.click();
+  }
+});
+
+load();
+if (!state.order.length) buildOrder();
+render();
+</script>
+</body>
+</html>
