@@ -93,7 +93,6 @@
 
 <script>
 const REFS = {
-  1: ["Liu et al. (2023). Lost in the Middle", "https://arxiv.org/abs/2307.03172"],
   2: ["Anthropic (2025). Effective context engineering for AI agents", "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents"],
   3: ["Jaroslawicz et al. (2025). How Many Instructions Can LLMs Follow at Once?", "https://arxiv.org/abs/2507.11538"],
   9: ["Configuring Agentic AI Coding Tools (2026)", "https://arxiv.org/abs/2602.14690"],
@@ -101,7 +100,6 @@ const REFS = {
   11: ["Lulla et al. (2026). On the Impact of AGENTS.md Files on the Efficiency of AI Coding Agents", "https://arxiv.org/abs/2601.20404"],
   4: ["McMillan (2026). Instruction Adherence in Coding Agent Configuration Files", "https://arxiv.org/abs/2605.10039"],
   12: ["Anthropic. Documentación de Claude Code: memoria y CLAUDE.md", "https://code.claude.com/docs/en/memory"],
-  14: ["Anthropic (2024). Building effective agents", "https://www.anthropic.com/engineering/building-effective-agents"],
   15: ["Anthropic (2026, enero). Building multi-agent systems: When and how to use them", "https://claude.com/blog/building-multi-agent-systems-when-and-how-to-use-them"],
   16: ["Anthropic (2025). How we built our multi-agent research system", "https://www.anthropic.com/engineering/multi-agent-research-system"],
   17: ["Khatua et al. (2026). CooperBench", "https://arxiv.org/abs/2601.13295"],
@@ -109,8 +107,7 @@ const REFS = {
   20: ["Cemri et al. (2025). Why Do Multi-Agent LLM Systems Fail?", "https://arxiv.org/abs/2503.13657"],
   21: ["Anthropic. Documentación de Claude Code: subagentes", "https://code.claude.com/docs/en/sub-agents"],
   13: ["Anthropic Applied AI (2026, octubre). When to fold subagents into your main agent loop", "https://claude.com/resources/articles/building-agents-when-to-fold-subagents-into-your-main-agent-loop"],
-  5: ["Huang et al. (2024). LLMs Cannot Self-Correct Reasoning Yet", "https://arxiv.org/abs/2310.01798"],
-  6: ["Panickssery et al. (2024). LLM Evaluators Recognize and Favor Their Own Generations", "https://arxiv.org/abs/2404.13076"],
+  8: ["Agent READMEs (2026). An Empirical Study of Context Files for Agentic Coding", "https://arxiv.org/abs/2511.12884"],
   7: ["Anthropic (2026, marzo). Harness design for long-running application development", "https://www.anthropic.com/engineering/harness-design-long-running-apps"],
   22: ["Anthropic. Best practices for Claude Code", "https://code.claude.com/docs/en/best-practices"],
   23: ["Anthropic. Documentación de Claude Code: hooks", "https://code.claude.com/docs/en/hooks-guide"],
@@ -122,7 +119,6 @@ const REFS = {
   29: ["Nygard, M. (2011). Documenting Architecture Decisions", "https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions"],
   30: ["Anthropic. Hooks reference (documentación de Claude Code)", "https://code.claude.com/docs/en/hooks"],
   31: ["Anthropic (2026, abril). The advisor strategy", "https://claude.com/blog/the-advisor-strategy"],
-  32: ["Aider (2024). Separating code reasoning and editing", "https://aider.chat/2024/09/26/architect.html"],
   0: ["Repositorio ingenieria-agentes", "https://github.com/AlvarLegaz/ingenieria-agentes"]
 };
 
@@ -134,9 +130,9 @@ const SECTIONS = [
 // s: bloque, q: pregunta, o: opciones (la primera es la correcta; se barajan al mostrar), e: explicación, r: referencias
 const Q = [
   // 0. Contexto y CLAUDE.md
-  {s:0, q:"Liu et al. (2023, «Lost in the Middle») estudiaron cómo usan los modelos de lenguaje los contextos largos. ¿En qué posición del contexto rinde mejor un modelo cuando tiene que encontrar la información relevante?",
-   o:["Al principio o al final del contexto","En la parte central del contexto","Da igual: la posición no influye","Solo al final del contexto"],
-   e:"El rendimiento cae de forma notable cuando la información está en medio, y también al crecer el contexto.", r:[1]},
+  {s:0, q:"Un estudio de 2026 analizó 2.303 archivos de contexto de agentes de programación (AGENTS.md, CLAUDE.md…) de 1.925 repositorios. ¿Cómo evolucionan esos archivos?",
+   o:["Como código de configuración: con añadidos pequeños y frecuentes","Se escriben una vez al crear el repositorio y no se vuelven a tocar","Se reescriben enteros en cada versión del proyecto","Los genera el propio agente sin revisión humana"],
+   e:"Los autores los describen además como complejos y difíciles de leer. Por eso conviene mantenerlos cortos y revisar periódicamente qué sobra.", r:[8]},
   {s:0, q:"¿Cómo llama Anthropic a la pérdida de precisión de un modelo a medida que crece su contexto?",
    o:["Context rot","Context drift","Attention collapse","Token decay"],
    e:"Por eso propone tratar el contexto como un recurso finito con rendimientos decrecientes.", r:[2]},
@@ -172,9 +168,9 @@ const Q = [
    e:"Solo lo que vale para cualquier tarea y el agente no deduciría leyendo el código; los resúmenes del repositorio no ayudan.", r:[10]},
 
   // 1. Un solo agente
-  {s:1, q:"¿Cuál es la recomendación central de «Building effective agents» (Anthropic, 2024)?",
-   o:["Buscar la solución más simple y añadir complejidad solo cuando haga falta","Usar siempre un framework multiagente","Empezar por agentes autónomos y simplificar después","Dividir toda tarea en al menos tres agentes"],
-   e:"La guía añade que a veces lo correcto es no construir un sistema agéntico.", r:[14]},
+  {s:1, q:"En su trabajo de marzo de 2026, Anthropic construyó un sistema que desarrollaba aplicaciones web completas de forma autónoma durante horas. ¿Qué arquitectura de agentes usó?",
+   o:["Tres agentes: un planificador, un generador que implementa y un evaluador que juzga el resultado","Un único agente sin subagentes","Un agente por cada capa de la aplicación: base de datos, backend y frontend","Varios generadores en paralelo y un votante que elige el mejor código"],
+   e:"La clave fue separar quien construye de quien juzga: el evaluador, ajustado para ser escéptico, da al generador algo concreto contra lo que iterar.", r:[7]},
   {s:1, q:"¿Qué advierte Anthropic en su guía de enero de 2026 sobre cuándo usar sistemas multiagente?",
    o:["Que se aplican a menudo donde un solo agente funcionaría mejor","Que ya son la mejor opción para cualquier tarea","Que solo funcionan con modelos pequeños","Que han dejado de consumir más tokens"],
    e:"Cuenta que ha visto equipos dedicar meses a arquitecturas complejas para descubrir que un solo agente con mejor prompt lograba lo mismo.", r:[15]},
@@ -230,19 +226,19 @@ const Q = [
   {s:2, q:"En el patrón «advisor» que Anthropic presentó en abril de 2026, se combinan Opus con un modelo más económico (Sonnet o Haiku). ¿Qué papel tiene cada uno?",
    o:["El modelo económico ejecuta la tarea de principio a fin y consulta a Opus en las decisiones difíciles","Opus ejecuta la tarea y consulta al modelo económico para ahorrar","Los dos ejecutan la misma tarea y se elige el mejor resultado","Opus escribe el código y el modelo económico lo revisa"],
    e:"En sus evaluaciones, Sonnet con Opus como asesor mejoró los resultados de Sonnet solo con un coste por tarea menor. Es el reparto que inspira a un programador en Sonnet con un planificador-evaluador en Opus.", r:[31]},
-  {s:2, q:"El «modo arquitecto» de la herramienta Aider obtuvo en 2024 el mejor resultado de su benchmark de edición de código. ¿En qué consiste?",
-   o:["Un modelo «arquitecto» razona cómo resolver el problema y otro modelo «editor» convierte esa solución en cambios en los archivos","Un modelo escribe el código y otro escribe los tests","Varios modelos proponen soluciones y se vota la mejor","Un modelo divide el repositorio en módulos y asigna uno a cada agente"],
-   e:"Separar el razonamiento de la edición permite usar un modelo fuerte donde más importa y uno más barato para el trabajo mecánico.", r:[32]},
+  {s:2, q:"Según la guía de Anthropic de enero de 2026, repartir el trabajo por roles produce un «teléfono roto». ¿Por qué un subagente de verificación no tiene ese problema?",
+   o:["Necesita poco contexto: solo comprueba si el resultado cumple los criterios, sin saber cómo se construyó","Porque usa siempre el modelo más potente","Porque se ejecuta antes que el agente principal","Porque comparte la misma ventana de contexto que el agente principal"],
+   e:"Por eso la verificación es una de las fronteras que Anthropic considera válidas para separar en otro agente.", r:[15]},
   {s:2, q:"Anthropic recomienda decidir el reparto de modelos de un agente comparando, con las mismas tareas, tres variantes. ¿Cuáles?",
    o:["El modelo económico solo, el modelo económico con Opus como asesor, y Opus solo","Opus, Sonnet y Haiku, cada uno solo","Un agente, dos agentes y tres agentes","Con CLAUDE.md, sin CLAUDE.md y con AGENTS.md"],
    e:"Lo hace en el anuncio del patrón «advisor». La mejor configuración depende de las tareas, así que hay que medirla con las propias.", r:[31]},
 
-  {s:3, q:"Según Huang et al. (ICLR 2024), ¿qué ocurre cuando un modelo intenta corregir su propio razonamiento sin realimentación externa?",
-   o:["Le cuesta corregirse y a veces empeora","Corrige casi todos sus errores","Mejora siempre un poco","Se niega a cambiar la respuesta"],
-   e:"Por eso la verificación necesita algo externo: tests, otro agente o ambos.", r:[5]},
-  {s:3, q:"¿Qué es el «sesgo de autopreferencia» (Panickssery et al.)?",
-   o:["Un modelo evaluador puntúa mejor sus propios textos que otros de calidad equivalente","Un modelo prefiere las instrucciones del usuario a las del sistema","Un modelo prefiere respuestas cortas","Un modelo repite su primera respuesta"],
-   e:"Los evaluadores humanos consideraban esos textos de calidad equivalente.", r:[6]},
+  {s:3, q:"Según la guía de Anthropic de enero de 2026, además de cubrir casos límite, ¿qué tipo de prueba debe hacer un subagente verificador?",
+   o:["Pruebas negativas: entradas que deberían fallar, comprobando que efectivamente fallan","Solo pruebas del camino feliz, para no alargar la verificación","Pruebas de rendimiento en todos los casos","Ninguna: basta con revisar el código leyéndolo"],
+   e:"Un cambio puede funcionar con datos correctos y aceptar en silencio datos que debería rechazar. Las pruebas negativas lo detectan.", r:[15]},
+  {s:3, q:"En su trabajo de marzo de 2026, Anthropic necesitaba que un agente evaluador juzgara con fiabilidad algo subjetivo: la calidad del diseño de una interfaz. ¿Qué hizo falta?",
+   o:["Definir criterios que convirtieran juicios como «¿es bueno este diseño?» en términos concretos y puntuables","Usar un modelo más grande como evaluador","Pedir al generador que se evaluara a sí mismo con más detalle","Que el evaluador viera todo el proceso de generación"],
+   e:"Sin criterios concretos el evaluador tiende a ser indulgente. Es la misma razón por la que los criterios de aceptación deben ser comprobables.", r:[7]},
   {s:3, q:"En su trabajo de marzo de 2026 sobre agentes que desarrollan aplicaciones completas durante horas, ¿qué observó Anthropic cuando pedía a un agente evaluar su propio trabajo?",
    o:["Que elogian con seguridad su propio trabajo aunque sea mediocre","Que se niegan a evaluar su trabajo","Que son demasiado críticos con su código","Que evalúan igual de bien su trabajo que el ajeno"],
    e:"Separar un agente evaluador fue mucho más tratable que hacer autocrítico al generador.", r:[7]},
