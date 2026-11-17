@@ -15,6 +15,31 @@ siguen siendo la referencia de un fenómeno, y los clásicos de la ingeniería d
 software (Parnas, Meyer, Shingo, Nygard) como fundamentos. Lo que es
 interpretación propia, y no conclusión de una fuente, se indica como tal.
 
+## Índice
+
+- [Organización básica de un proyecto](#organización-básica-de-un-proyecto)
+- [1. Tres limitaciones de partida](#1-tres-limitaciones-de-partida)
+  - [La atención es un recurso escaso](#la-atención-es-un-recurso-escaso)
+  - [El cumplimiento se degrada con el tiempo](#el-cumplimiento-se-degrada-con-el-tiempo)
+  - [Un modelo juzga mal su propio trabajo](#un-modelo-juzga-mal-su-propio-trabajo)
+- [2. Principios](#2-principios)
+  - [2.1 Contexto mínimo y relevante](#21-contexto-mínimo-y-relevante)
+  - [2.2 Un solo agente escribe](#22-un-solo-agente-escribe)
+  - [2.3 Separar contexto, no repartir roles](#23-separar-contexto-no-repartir-roles)
+  - [2.4 Verificación externa y ejecutable](#24-verificación-externa-y-ejecutable)
+  - [2.5 Lo obligatorio se garantiza con mecanismos](#25-lo-obligatorio-se-garantiza-con-mecanismos)
+  - [2.6 Interfaces explícitas](#26-interfaces-explícitas)
+  - [2.7 La memoria vive en artefactos](#27-la-memoria-vive-en-artefactos)
+  - [2.8 Medir antes de creer](#28-medir-antes-de-creer)
+- [3. Cómo encajan las piezas](#3-cómo-encajan-las-piezas)
+- [4. Límites de este enfoque](#4-límites-de-este-enfoque)
+- [Uso](#uso)
+  - [Requisitos](#requisitos)
+  - [1. Copiar la configuración a tu proyecto](#1-copiar-la-configuración-a-tu-proyecto)
+  - [2. Comprobar los hooks](#2-comprobar-los-hooks)
+  - [3. Empezar a trabajar con Claude Code](#3-empezar-a-trabajar-con-claude-code)
+- [Referencias](#referencias)
+
 ---
 
 ## Organización básica de un proyecto
