@@ -1,0 +1,6 @@
+# Los scripts deben tener finales de línea LF también en Windows:
+# con CRLF, bash falla ("\r: command not found").
+*.sh   text eol=lf
+*.py   text eol=lf
+*.json text eol=lf
+*.md   text eol=lf

@@ -8,6 +8,7 @@
 """
 import json
 import os
+import shutil
 import subprocess
 import sys
 
@@ -40,8 +41,11 @@ def main() -> int:
         print("Aviso: no existe scripts/verificar.sh; no se ha verificado el cambio.", file=sys.stderr)
         return 1  # no bloquea: solo informa al usuario
 
+    # Ruta completa de bash según PATH. En Windows, invocar "bash" a secas desde
+    # Python puede abrir el bash de WSL (System32) en lugar del de Git Bash.
+    bash = shutil.which("bash") or "bash"
     try:
-        r = subprocess.run(["bash", script], cwd=raiz, capture_output=True, text=True, timeout=570)
+        r = subprocess.run([bash, script], cwd=raiz, capture_output=True, text=True, timeout=570)
     except subprocess.TimeoutExpired:
         print("scripts/verificar.sh superó el tiempo límite. Revisa por qué tarda tanto "
               "antes de dar la tarea por terminada.", file=sys.stderr)

@@ -15,7 +15,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/bloquear-comandos.py\""
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/ejecutar.sh\" bloquear-comandos.py"
           }
         ]
       },
@@ -24,7 +24,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/proteger-archivos.py\""
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/ejecutar.sh\" proteger-archivos.py"
           }
         ]
       }
@@ -34,7 +34,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/verificar-al-terminar.py\"",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/ejecutar.sh\" verificar-al-terminar.py avisar",
             "timeout": 600
           }
         ]

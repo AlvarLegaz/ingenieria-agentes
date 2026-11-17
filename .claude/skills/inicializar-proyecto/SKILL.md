@@ -20,14 +20,23 @@ description: Prepara un repositorio nuevo o recién adoptado para trabajar con e
    - No añadas un resumen del repositorio ni de su estructura: el agente lo
      descubre leyendo el código y los estudios muestran que no ayuda.
    - Escribe solo lo que el agente no deduciría por sí mismo.
-6. Comprueba los hooks: deben ser ejecutables y `python3` debe estar disponible.
-   Añade a `PROTEGIDOS` en `.claude/hooks/proteger-archivos.py` los archivos
-   sensibles propios del proyecto.
+6. Comprueba los hooks ejecutando
+   `echo '{"tool_input":{"command":"git push --force"}}' | bash .claude/hooks/ejecutar.sh bloquear-comandos.py`:
+   debe terminar con código 2. Si responde que no encuentra Python, avisa al
+   usuario de que los hooks bloquearán todas las acciones hasta que lo instale.
+   Comprueba también que el proyecto es un repositorio git.
+   No puedes editar `.claude/hooks/` ni `.claude/settings.json` (están
+   protegidos): si hay que añadir archivos sensibles propios del proyecto a
+   `PROTEGIDOS` en `proteger-archivos.py`, indica al usuario qué añadir.
 7. Ajusta los skills: borra `diseno-interfaz` si no hay interfaz; concreta y
    renombra `dominio`, o bórralo si no hay reglas de dominio propias.
-8. Si el repositorio está vacío, propón una arquitectura mínima con el skill
-   `arquitectura` y espera confirmación antes de crear la estructura.
-9. Propón al usuario un conjunto de tareas de evaluación con el skill
+8. Si `docs/especificacion.md` está vacía, pregunta al usuario qué quiere
+   construir y redáctala con el skill `especificar`. En un proyecto existente,
+   puede bastar con el objetivo, los usuarios y lo que queda fuera de alcance.
+9. Si el repositorio está vacío, propón una arquitectura mínima con el skill
+   `arquitectura`, a partir de la especificación aprobada, y espera
+   confirmación antes de crear la estructura.
+10. Propón al usuario un conjunto de tareas de evaluación con el skill
    `evaluar-configuracion`.
 
 ## Qué no hacer

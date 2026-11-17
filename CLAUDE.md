@@ -21,12 +21,18 @@
 
 <!-- RELLENAR: comportamientos no obvios, módulos frágiles, cosas que no tocar. -->
 
+## Qué se construye
+
+Lo que debe hacer el proyecto está en `docs/especificacion.md`. Léelo antes de
+cualquier tarea que añada o cambie funcionalidad. Si la petición no encaja con
+la especificación, o está vacía, usa el skill `especificar` antes de implementar.
+
 ## Cómo se trabaja
 
 - Un solo agente hace el trabajo de principio a fin. Las escrituras no se
   reparten entre varios agentes.
 - El conocimiento especializado está en skills, que se cargan cuando hacen falta:
-  `arquitectura`, `diseno-interfaz`, `dominio`, `contrato`, `adr`.
+  `especificar`, `arquitectura`, `diseno-interfaz`, `dominio`, `contrato`, `adr`.
 - Usa subagentes solo para separar contexto, nunca para repartir roles:
   - `Explore` (incluido en Claude Code) para búsquedas amplias de solo lectura
     que llenarían la conversación.
@@ -40,7 +46,8 @@
 
 1. Ejecuta `scripts/verificar.sh` y corrige lo que falle.
 2. Si el cambio altera comportamiento en varios componentes, o un contrato,
-   invoca a `verificador` con criterios de aceptación concretos.
+   invoca a `verificador` con criterios de aceptación concretos (los de la
+   especificación, si los hay).
 3. Resume en pocas líneas: qué se hizo, qué se verificó y cómo, qué queda
    pendiente.
 

@@ -217,7 +217,27 @@ repositorio, que recogen el contexto, la decisión, su estado y sus consecuencia
 el contexto entre sesiones como una de las claves de sus agentes de programación
 de larga duración [7].
 
-**En el repositorio.** El skill `adr` registra las decisiones significativas, y
+Conviene distinguir tres tipos de memoria, porque cada una responde a una
+pregunta distinta y se lee en un momento distinto:
+
+| Artefacto | Pregunta que responde | Cuándo se lee |
+|---|---|---|
+| Especificación (`docs/especificacion.md`) | Qué debe hacer el proyecto | Antes de tareas que añadan o cambien funcionalidad |
+| ADR (`docs/adr/`) | Por qué está construido así | Antes de decisiones estructurales |
+| `CLAUDE.md` | Cómo se trabaja en el repositorio | En cada sesión |
+
+La especificación cumple el papel que en la ingeniería de requisitos clásica
+tienen los requisitos con criterios de aceptación. El propio trabajo de
+Anthropic de 2026 sobre aplicaciones de larga duración usa un agente planificador
+previo al que genera el código [7]. *Interpretación propia:* sus criterios de
+aceptación son además los que necesita el verificador (sección 2.4), y
+mantenerla fuera de `CLAUDE.md` evita cargar en cada sesión un texto largo que
+solo hace falta en algunas tareas (sección 2.1).
+
+**En el repositorio.** El skill `especificar` convierte la idea del usuario en
+`docs/especificacion.md`, con funcionalidades, criterios de aceptación
+comprobables y lo que queda fuera de alcance; `CLAUDE.md` solo indica dónde
+está y cuándo leerla. El skill `adr` registra las decisiones significativas, y
 `CLAUDE.md` pide una nota de traspaso al final de cada sesión en las tareas
 largas. *Interpretación propia:* esto también compensa la caída del cumplimiento
 durante la sesión [4], porque permite empezar de nuevo sin perder el estado.
@@ -241,7 +261,8 @@ tiempo y falsos "terminado".
 ```mermaid
 flowchart TD
     U[Usuario] -->|tarea| A[Agente principal<br/>lee CLAUDE.md]
-    A -->|carga cuando hace falta| S[Skills<br/>arquitectura · diseno-interfaz · dominio<br/>contrato · adr · evaluar-configuracion]
+    A -->|lee antes de añadir funcionalidad| ES[docs/especificacion.md<br/>qué debe hacer el proyecto]
+    A -->|carga cuando hace falta| S[Skills<br/>especificar · arquitectura · diseno-interfaz · dominio<br/>contrato · adr · evaluar-configuracion]
     A -->|búsqueda amplia, solo lectura| E[Subagente Explore]
     A -->|único que escribe| C[Código del proyecto]
     H1[Hooks antes de cada acción<br/>bloquear-comandos · proteger-archivos] -. pueden bloquear .-> C
@@ -251,7 +272,8 @@ flowchart TD
     H2 -. si falla, no deja terminar .-> A
 ```
 
-El agente principal recibe la tarea con un contexto mínimo y carga el
+El agente principal recibe la tarea con un contexto mínimo, consulta la
+especificación cuando la tarea afecta a lo que hace el proyecto y carga el
 conocimiento especializado solo cuando lo necesita. Delega en subagentes
 únicamente lo que conviene aislar: búsquedas que llenarían su contexto y la
 verificación, que debe ser independiente. Es el único que modifica el código, y
@@ -263,6 +285,7 @@ exige que la verificación completa pase.
 |---|---|
 | `CLAUDE.md` | Contexto mínimo y relevante (2.1) |
 | `.claude/skills/` | Contexto bajo demanda (2.1), interfaces explícitas (2.6), memoria (2.7), medición (2.8) |
+| `docs/especificacion.md` | Memoria en artefactos (2.7); fuente de los criterios de aceptación (2.4) |
 | `.claude/agents/verificador.md` | Verificación externa (2.4), separar contexto (2.3) |
 | `.claude/hooks/` y `.claude/settings.json` | Lo obligatorio con mecanismos (2.5) |
 | `scripts/verificar.sh` | Verificación ejecutable (2.4) |
@@ -289,39 +312,87 @@ exige que la verificación completa pase.
 
 ## Uso
 
-**Requisitos:** Claude Code, `python3` (para los hooks) y que el proyecto sea un
-repositorio git (el hook de cierre usa `git status`).
+### Requisitos
 
-**1. Copiar la configuración.** Desde la raíz de tu proyecto:
+- Claude Code.
+- Python 3.8 o superior, para los hooks.
+- Git. El proyecto debe ser un repositorio git, porque el hook de cierre usa
+  `git status` para saber si hay cambios.
+- En Windows, **Git for Windows**: Claude Code ejecuta los hooks con Git Bash.
+  Los hooks se lanzan con `.claude/hooks/ejecutar.sh`, que busca el Python que
+  funcione (`python3`, `python` o `py`); en Windows, `python3` suele ser un
+  alias de Microsoft Store que no ejecuta nada.
 
-```bash
-git clone --depth 1 https://github.com/AlvarLegaz/ingenieria-agentes.git /tmp/ingenieria-agentes
-cp -Rn /tmp/ingenieria-agentes/.claude /tmp/ingenieria-agentes/scripts .
-cp -n  /tmp/ingenieria-agentes/CLAUDE.md .
-chmod +x .claude/hooks/*.py scripts/verificar.sh
-rm -rf /tmp/ingenieria-agentes
+### 1. Copiar la configuración a tu proyecto
+
+Desde la raíz de tu proyecto. Ninguno de los comandos sobrescribe archivos que
+ya existan: si tu proyecto ya tenía `CLAUDE.md` o `.claude/settings.json`,
+fusiónalos a mano.
+
+**Windows (PowerShell)**
+
+```powershell
+$tmp = "$env:TEMP\ingenieria-agentes"
+git clone --depth 1 https://github.com/AlvarLegaz/ingenieria-agentes.git $tmp
+robocopy "$tmp\.claude" .claude /E /XC /XN /XO
+robocopy "$tmp\scripts" scripts /E /XC /XN /XO
+robocopy "$tmp\docs" docs especificacion.md /XC /XN /XO
+foreach ($f in "CLAUDE.md", ".gitattributes") { if (-not (Test-Path $f)) { Copy-Item "$tmp\$f" . } }
+Remove-Item -Recurse -Force $tmp
+if (-not (Test-Path .git)) { git init }
 ```
 
-`cp -n` no sobrescribe archivos existentes: si tu proyecto ya tenía `CLAUDE.md` o
-`.claude/settings.json`, fusiónalos a mano. En versiones recientes de Linux
-muestra un aviso de portabilidad que es inofensivo.
+`robocopy` con `/XC /XN /XO` copia solo los archivos que no existen en el
+destino.
 
-**2. Comprobar los hooks.**
+**Linux, macOS o WSL**
 
 ```bash
+tmp=/tmp/ingenieria-agentes
+git clone --depth 1 https://github.com/AlvarLegaz/ingenieria-agentes.git "$tmp"
+cp -Rn "$tmp/.claude" "$tmp/scripts" .
+mkdir -p docs && cp -n "$tmp/docs/especificacion.md" docs/
+cp -n "$tmp/CLAUDE.md" "$tmp/.gitattributes" .
+rm -rf "$tmp"
+[ -d .git ] || git init
+```
+
+En versiones recientes de Linux, `cp -n` muestra un aviso de portabilidad que es
+inofensivo.
+
+### 2. Comprobar los hooks
+
+**Windows (PowerShell)**
+
+```powershell
+python --version
 # Debe mostrar el motivo del bloqueo y "exit 2"
-echo '{"tool_input":{"command":"git push --force"}}' | python3 .claude/hooks/bloquear-comandos.py; echo "exit $?"
+'{"tool_input":{"command":"git push --force"}}' | python .claude\hooks\bloquear-comandos.py; "exit $LASTEXITCODE"
 # Debe mostrar "exit 0"
-echo '{"tool_input":{"command":"git status"}}' | python3 .claude/hooks/bloquear-comandos.py; echo "exit $?"
+'{"tool_input":{"command":"git status"}}' | python .claude\hooks\bloquear-comandos.py; "exit $LASTEXITCODE"
 ```
 
-**3. Inicializar en Claude Code.** Abre `claude` en el proyecto y ejecuta
-`/inicializar-proyecto`, que rellena `CLAUDE.md` y `scripts/verificar.sh` con
-los comandos reales. Comprueba con `/agents` que aparece `verificador` y con
-`/hooks` que los tres hooks están registrados.
+**Linux, macOS o WSL**
 
-**4. Comprobar la verificación.** `bash scripts/verificar.sh; echo "exit $?"`
-debe ejecutar tus comandos reales y terminar con `exit 0`.
+```bash
+echo '{"tool_input":{"command":"git push --force"}}' | bash .claude/hooks/ejecutar.sh bloquear-comandos.py; echo "exit $?"
+echo '{"tool_input":{"command":"git status"}}' | bash .claude/hooks/ejecutar.sh bloquear-comandos.py; echo "exit $?"
+```
+
+### 3. Empezar a trabajar con Claude Code
+
+Abre `claude` en la carpeta del proyecto y sigue este orden:
+
+| Paso | Qué escribir | Qué ocurre |
+|---|---|---|
+| 1 | `/inicializar-proyecto` | Detecta el stack, rellena `CLAUDE.md` y `scripts/verificar.sh` y, si la especificación está vacía, te pregunta qué quieres construir |
+| 2 | Tu idea, con tus palabras | El skill `especificar` la convierte en `docs/especificacion.md`, con funcionalidades y criterios de aceptación |
+| 3 | Revisa la especificación y corrígela | Es tu documento: nada se implementa hasta que lo apruebes |
+| 4 | `/agents` y `/hooks` | Comprobar que aparece `verificador` y que los tres hooks están registrados |
+| 5 | Una tarea concreta, por ejemplo: "Implementa F1 de la especificación" | El agente implementa, verifica con `scripts/verificar.sh` y, si procede, con `verificador` |
+
+Los skills también se activan si los pides con palabras ("inicializa el
+proyecto", "ayúdame a especificar lo que quiero construir").
 
 ---
 
