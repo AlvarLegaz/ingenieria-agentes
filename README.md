@@ -281,12 +281,73 @@ resueltas con y sin un cambio, midiendo éxito, tokens, tiempo y falsos
 | `scripts/verificar.sh` | Verificación completa del proyecto |
 | `docs/autoevaluacion.html` | Test de 50 preguntas sobre esta teoría |
 
-1. Copia `CLAUDE.md`, `.claude/` y `scripts/` a la raíz de tu proyecto.
-2. Lanza el skill `inicializar-proyecto`, o rellena a mano `CLAUDE.md` y
-   `scripts/verificar.sh`.
-3. Comprueba que `python3` está disponible: los hooks lo necesitan.
-4. Comprueba con `/agents` que aparece `verificador` y con `/hooks` que los hooks
-   están registrados.
+### Requisitos
+
+- Claude Code.
+- `python3`, para los hooks.
+- `git`: el proyecto debe ser un repositorio git, porque el hook de cierre usa
+  `git status` para saber si hay cambios.
+
+### 1. Copiar la configuración a tu proyecto
+
+Desde la raíz de tu proyecto:
+
+```bash
+# Descargar esta configuración (cambia la URL si el repo tiene otro nombre)
+git clone --depth 1 https://github.com/AlvarLegaz/ingenieria-agentes.git /tmp/ingenieria-agentes
+
+# Copiar sin sobrescribir nada que ya exista en tu proyecto
+cp -Rn /tmp/ingenieria-agentes/.claude /tmp/ingenieria-agentes/scripts .
+cp -n  /tmp/ingenieria-agentes/CLAUDE.md .
+
+# Dar permisos de ejecución
+chmod +x .claude/hooks/*.py scripts/verificar.sh
+
+# Borrar la copia temporal
+rm -rf /tmp/ingenieria-agentes
+```
+
+Si tu proyecto ya tenía `CLAUDE.md` o `.claude/settings.json`, `cp -n` los deja
+intactos: tendrás que fusionarlos a mano con los de este repositorio. En
+versiones recientes de Linux, `cp -n` muestra un aviso de portabilidad; es
+inofensivo.
+
+### 2. Comprobar que los hooks funcionan
+
+```bash
+python3 --version
+
+# Debe imprimir el motivo del bloqueo y "exit 2"
+echo '{"tool_input":{"command":"git push --force"}}' \
+  | python3 .claude/hooks/bloquear-comandos.py; echo "exit $?"
+
+# Debe imprimir "exit 0"
+echo '{"tool_input":{"command":"git status"}}' \
+  | python3 .claude/hooks/bloquear-comandos.py; echo "exit $?"
+```
+
+### 3. Inicializar dentro de Claude Code
+
+```bash
+claude
+```
+
+Dentro de la sesión:
+
+| Comando | Para qué |
+|---|---|
+| `/inicializar-proyecto` | Rellena `CLAUDE.md` y `scripts/verificar.sh` con los comandos reales del proyecto y ajusta los skills |
+| `/agents` | Comprobar que aparece `verificador` |
+| `/hooks` | Comprobar que los tres hooks están registrados |
+
+### 4. Comprobar la verificación
+
+```bash
+bash scripts/verificar.sh; echo "exit $?"
+```
+
+Debe ejecutar tus comandos reales y terminar con `exit 0`. Mientras no esté
+configurado, avisa de que no comprueba nada.
 
 ---
 
