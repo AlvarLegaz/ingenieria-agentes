@@ -67,12 +67,21 @@
   td.n { text-align: right; font-variant-numeric: tabular-nums; }
   .big { font-size: 2.2rem; font-weight: 700; margin: 4px 0; }
   .hint { color: var(--muted); font-size: .8rem; margin-top: 14px; text-align: center; }
+  .code {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 12px 14px; margin: -4px 0 16px; white-space: pre-wrap; overflow-wrap: anywhere;
+    font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .88em;
+    background: var(--accent-soft); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere;
+  }
 </style>
 </head>
 <body>
 <main>
   <h1>Autoevaluación: ingeniería de agentes para programación</h1>
-  <p class="sub">50 preguntas sobre la teoría del README. Cada respuesta se corrige al momento con su explicación y la fuente.</p>
+  <p class="sub">70 preguntas: teoría y casos prácticos con código. Cada respuesta se corrige al momento con su explicación y la fuente.</p>
 
   <div class="chips" id="chips" role="group" aria-label="Filtrar por bloque"></div>
   <div class="bar"><div id="bar"></div></div>
@@ -111,12 +120,13 @@ const REFS = {
   25: ["Grout y Downs. A Brief Tutorial on Mistake-proofing, Poka-Yoke, and ZQC", "https://mistakeproofing.com/a-brief-tutorial-on-mistake-proofing-poka-yoke-and-zqc/"],
   26: ["Minsky (2010) / Wlaschin. Making illegal states unrepresentable", "https://fsharpforfunandprofit.com/posts/designing-with-types-making-illegal-states-unrepresentable/"],
   29: ["Nygard, M. (2011). Documenting Architecture Decisions", "https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions"],
-  0: ["README del repositorio (aplicación de la teoría)", ""]
+  30: ["Anthropic. Hooks reference (documentación de Claude Code)", "https://code.claude.com/docs/en/hooks"],
+  0: ["Repositorio ingenieria-agentes", "https://github.com/AlvarLegaz/ingenieria-agentes"]
 };
 
 const SECTIONS = [
   "Contexto y CLAUDE.md", "Un solo agente", "Subagentes", "Verificación",
-  "Hooks", "Contratos", "Memoria y medición"
+  "Hooks", "Contratos", "Memoria y medición", "Casos prácticos con código"
 ];
 
 // s: bloque, q: pregunta, o: opciones (la primera es la correcta; se barajan al mostrar), e: explicación, r: referencias
@@ -155,9 +165,9 @@ const Q = [
   {s:0, q:"¿Qué recuerda la documentación de Claude Code sobre el contenido de CLAUDE.md?",
    o:["Es contexto para el modelo, no configuración impuesta; y recomienda menos de 200 líneas","Es una configuración que el modelo no puede ignorar","Solo se lee si el usuario lo menciona","Se aplica únicamente a los subagentes"],
    e:"Que sea contexto explica por qué lo obligatorio debe ir a hooks y no a texto.", r:[12]},
-  {s:0, q:"Según el diseño de este repositorio, ¿qué debe contener CLAUDE.md?",
+  {s:0, q:"A la vista de los estudios de 2026, ¿qué contenido conviene poner en un CLAUDE.md?",
    o:["Comandos, convenciones no estándar, trampas conocidas y reglas de trabajo","Un resumen detallado de la estructura del repositorio","Las definiciones de todos los roles del equipo","Buenas prácticas generales de programación"],
-   e:"Solo lo que vale para cualquier tarea y el agente no deduciría leyendo el código.", r:[0,10]},
+   e:"Solo lo que vale para cualquier tarea y el agente no deduciría leyendo el código; los resúmenes del repositorio no ayudan.", r:[10]},
 
   // 1. Un solo agente
   {s:1, q:"¿Cuál es la recomendación central de «Building effective agents» (Anthropic, 2024)?",
@@ -210,8 +220,8 @@ const Q = [
   {s:2, q:"¿En qué casos recomienda Anthropic (octubre de 2026) mantener un subagente?",
    o:["Degradación medible por exceso de contexto, tareas paralelas con contextos desechables o fallos al elegir herramientas","Siempre que haya un equipo humano responsable","Para cada dominio de la empresa","Cuando el prompt de sistema supera 100 líneas"],
    e:"Fuera de esos casos, el conocimiento puede ir como skill del agente principal.", r:[13]},
-  {s:2, q:"En este repositorio, ¿cómo se incorpora el conocimiento de arquitectura?",
-   o:["Como el skill «arquitectura», que el agente principal carga cuando lo necesita","Como un subagente «arquitecto» que diseña antes de cada tarea","Como una sección extensa dentro de CLAUDE.md","No se incorpora: se deja al criterio del modelo"],
+  {s:2, q:"El conocimiento sobre cómo tomar decisiones de arquitectura es especializado, pero no necesita un contexto aislado. Según Anthropic (octubre de 2026), ¿cómo conviene incorporarlo?",
+   o:["Como un skill que el agente principal carga cuando lo necesita","Como un subagente «arquitecto» que diseña antes de cada tarea","Como una sección extensa dentro de CLAUDE.md","No hace falta incorporarlo: basta con el criterio del modelo"],
    e:"Es conocimiento especializado, no una frontera de contexto, así que va en un skill y no en un subagente. Lo mismo ocurre con el diseño de interfaz y el dominio.", r:[0,15,13]},
 
   // 3. Verificación
@@ -233,31 +243,25 @@ const Q = [
   {s:3, q:"Según la guía de buenas prácticas de Claude Code, ¿qué es lo que más mejora los resultados?",
    o:["Darle al modelo una forma de verificar su trabajo: tests, capturas o salidas esperadas","Escribir prompts más largos","Usar siempre el modelo más grande","Activar más subagentes"],
    e:"Sin criterios de éxito, el modelo puede producir algo que parece correcto pero no funciona.", r:[22]},
-  {s:3, q:"¿Por qué el subagente «verificador» no tiene herramientas de edición?",
-   o:["Para que no pueda «arreglar» lo que verifica y su informe sea independiente","Porque Claude Code no permite editar a los subagentes","Para que sea más rápido","Porque usa un modelo sin acceso a archivos"],
-   e:"Es una restricción técnica, no una instrucción de texto: si encuentra un problema, lo describe y lo corrige el agente principal.", r:[0]},
+  {s:3, q:"Un subagente de verificación se define solo con herramientas de lectura, búsqueda y ejecución de comandos, sin herramientas de edición. ¿Qué se consigue?",
+   o:["Que no pueda «arreglar» lo que verifica, de modo que su informe sea independiente","Que consuma menos tokens","Que pueda ejecutarse en paralelo con otros subagentes","Nada: los subagentes nunca pueden editar archivos"],
+   e:"Es una restricción técnica, no una instrucción de texto: si encuentra un problema, lo describe y lo corrige el agente principal.", r:[21,7]},
 
   // 4. Hooks
   {s:4, q:"Según la documentación de Claude Code, ¿qué aportan los hooks frente a una instrucción en CLAUDE.md?",
    o:["Control determinista: la acción ocurre siempre, sin depender de que el modelo decida hacerla","Más contexto para el modelo","Mejores explicaciones en las respuestas","Acceso a modelos más grandes"],
    e:"Lo que debe cumplirse siempre va en un hook; lo que el modelo debe saber, en CLAUDE.md.", r:[23]},
-  {s:4, q:"¿Por qué el hook «proteger-archivos» impide editar .claude/settings.json y .claude/hooks/?",
-   o:["Para que el agente no pueda desactivar su propia configuración de seguridad","Porque Claude Code no puede leer esos archivos","Para ahorrar tokens","Porque son archivos binarios"],
-   e:"Una protección que el agente puede desmontar no protege. Los cambios en esos archivos los hace el usuario.", r:[0]},
-  {s:4, q:"El hook Stop no vuelve a bloquear si el agente ya está continuando por ese mismo hook. ¿Por qué?",
-   o:["Para evitar bucles infinitos","Para ahorrar tiempo de CPU","Porque Claude Code no permite bloquear dos veces","Para que los tests fallidos se ignoren"],
-   e:"El agente recibe una oportunidad de corregir; si no puede, debe explicar el fallo al usuario en lugar de quedarse en bucle.", r:[0]},
   {s:4, q:"¿Qué es un dispositivo poka-yoke?",
    o:["Un mecanismo que impide cometer un error o lo hace evidente al instante","Un sistema de inspección por muestreo","Un registro de incidencias","Un método de formación de operarios"],
    e:"Shingo lo desarrolló dentro de su sistema de Control de Calidad Cero. Un hook es su equivalente en software.", r:[24,25]},
   {s:4, q:"¿A quién se atribuye el principio «make illegal states unrepresentable»?",
    o:["Yaron Minsky","Bertrand Meyer","Martin Fowler","Barbara Liskov"],
    e:"Propone modelar los datos para que los estados inválidos no se puedan ni escribir.", r:[26]},
-  {s:4, q:"Ante un error relevante, ¿qué orden de prioridad sigue este repositorio?",
+  {s:4, q:"Para evitar que un error se repita, ¿qué orden de preferencia se propone, de la protección más fuerte a la más débil?",
    o:["Rediseñar, restringir, automatizar con un test o hook y, al final, documentar","Documentar, automatizar, restringir y rediseñar","Automatizar siempre primero","Documentar y esperar a que se repita"],
    e:"Una regla escrita es la protección más débil, sobre todo porque el cumplimiento cae durante la sesión.", r:[0,4,23]},
-  {s:4, q:"¿Qué limitación tiene el hook «bloquear-comandos» según el README?",
-   o:["Usa patrones de texto, así que un comando ofuscado puede saltárselo","Solo funciona en Windows","Bloquea todos los comandos de git","Necesita conexión a internet"],
+  {s:4, q:"Un hook bloquea comandos peligrosos comparándolos con expresiones regulares. ¿Qué limitación tiene?",
+   o:["Un comando ofuscado o escrito de otra forma puede no coincidir con ningún patrón","Solo funciona en Windows","Bloquea todos los comandos de git","Necesita conexión a internet"],
    e:"Reduce riesgos, pero no sustituye a los permisos ni a las copias de seguridad.", r:[0]},
 
   // 5. Contratos
@@ -267,9 +271,9 @@ const Q = [
   {s:5, q:"¿Qué criterio propuso Parnas (1972) para dividir un sistema en módulos?",
    o:["Que cada módulo oculte una decisión de diseño que pueda cambiar","Que cada módulo sea un paso del proceso","Que todos los módulos tengan el mismo tamaño","Que cada módulo lo escriba un programador distinto"],
    e:"Así una implementación puede sustituirse sin afectar a los demás módulos.", r:[28]},
-  {s:5, q:"¿Qué evidencia de 2026 conecta los contratos con el trabajo de los agentes?",
-   o:["Las interfaces limpias son una frontera válida para delegar y muchos fallos de CooperBench son expectativas erróneas sobre el otro agente","Los agentes no pueden leer tipos ni esquemas","Los contratos reducen los tokens un 90 %","Los contratos hacen innecesarios los tests"],
-   e:"Un contrato ejecutable sustituye las suposiciones por algo comprobable (interpretación del README).", r:[15,17,0]},
+  {s:5, q:"En CooperBench, dos agentes que programaban en el mismo repositorio fallaban, entre otras causas, por suposiciones erróneas sobre lo que hacía el otro. ¿Qué práctica de ingeniería del software ataca directamente ese problema?",
+   o:["Definir contratos ejecutables entre las partes: tipos, esquemas o tests de contrato","Añadir un tercer agente que revise a los otros dos","Ampliar la ventana de contexto de ambos agentes","Escribir un README más detallado"],
+   e:"Un contrato convierte lo que cada parte supone de la otra en algo explícito y comprobable. Anthropic cita además los componentes con interfaces limpias como una de las fronteras válidas para dividir trabajo.", r:[17,27,15]},
 
   // 6. Memoria y medición
   {s:6, q:"¿Quién propuso los Architecture Decision Records, cuándo y dónde se guardan?",
@@ -278,16 +282,195 @@ const Q = [
   {s:6, q:"¿Qué lección mantuvo Anthropic (marzo de 2026) para sesiones largas de programación?",
    o:["Usar artefactos estructurados para traspasar el contexto entre sesiones","Mantener una única sesión sin límite de tiempo","Guardar todo el historial en CLAUDE.md","Evitar dividir el trabajo en partes"],
    e:"En este repositorio se aplica con los ADR y con la nota de traspaso al final de cada sesión.", r:[7,0]},
-  {s:6, q:"¿Por qué incluye el repositorio un skill para evaluar la configuración antes de adoptar cambios?",
-   o:["Porque los estudios de 2026 no coinciden y recomiendan evaluar cada mejora en el propio proyecto","Porque Claude Code lo exige para cargar skills","Porque los hooks no funcionan sin evaluación previa","Para generar documentación automática"],
+  {s:6, q:"Dos estudios de 2026 sobre AGENTS.md llegan a conclusiones distintas. ¿Qué recomiendan Gloaguen et al. y Anthropic antes de adoptar un cambio en la configuración de un agente?",
+   o:["Evaluarlo con tareas del propio proyecto antes de adoptarlo","Adoptar siempre la recomendación del estudio más reciente","Copiar la configuración de un repositorio popular","Probarlo en una sola tarea y decidir"],
    e:"Gloaguen et al. recomiendan evaluar cualquier mejora y Anthropic propone crear primero un conjunto de evaluación.", r:[10,13]},
-  {s:6, q:"En el skill «evaluar-configuracion», ¿por qué se repite cada combinación de tarea y variante al menos 3 veces?",
+  {s:6, q:"Al comparar dos configuraciones de un agente con las mismas tareas, ¿por qué conviene repetir cada ejecución varias veces?",
    o:["Porque los resultados de un agente varían entre ejecuciones","Porque Claude Code limita las sesiones a tres","Para gastar el mismo número de tokens en cada variante","Porque así lo exige SWE-bench"],
-   e:"Con una sola ejecución, una diferencia puede deberse al azar.", r:[0]}
+   e:"Con una sola ejecución, una diferencia puede deberse al azar.", r:[0]},
+
+  // 7. Casos prácticos con código
+  {s:7, q:"Esta definición del subagente verificador tiene un fallo de diseño. ¿Cuál?",
+   c:`---
+name: verificador
+description: Verifica los cambios antes de cerrar una tarea.
+tools: Read, Grep, Glob, Bash, Edit, Write
+model: inherit
+---`,
+   o:["Incluye `Edit` y `Write`: podría «arreglar» lo que verifica y su informe dejaría de ser independiente","Le falta el campo `color`, obligatorio en los subagentes","`model: inherit` impide que ejecute tests","La descripción está en español y Claude Code no la entiende"],
+   e:"Quitar las herramientas de edición convierte la independencia en una restricción técnica. El verificador describe los problemas y el agente principal los corrige.", r:[0,7,21]},
+
+  {s:7, q:"Un equipo organiza así sus subagentes. Según la guía de Anthropic de 2026, ¿cuál es el problema principal?",
+   c:`.claude/agents/
+├── planificador.md    # descompone la tarea en pasos
+├── programador.md     # implementa los pasos
+├── revisor.md         # revisa el código del programador
+└── documentador.md    # actualiza la documentación`,
+   o:["Reparte por roles fases sucesivas del mismo trabajo, y la información se degrada en cada traspaso","Son pocos subagentes para un proyecto real","Faltan subagentes de seguridad y de rendimiento","Los nombres de los archivos deberían estar en inglés"],
+   e:"Las fases sucesivas de un mismo trabajo deben quedarse en un solo agente. Planificar y documentar encajan como skills; revisar sí puede ser un verificador de caja negra.", r:[15,13]},
+
+  {s:7, q:"¿Qué problema práctico tiene esta descripción de subagente?",
+   c:`---
+name: ayudante
+description: Ayuda con varias cosas del proyecto.
+tools: Read, Grep, Glob
+---`,
+   o:["Claude decide cuándo delegar a partir de la descripción; si es vaga, no sabrá cuándo usarlo","Las descripciones de más de 20 caracteres se ignoran","Sin la herramienta `Bash` el subagente no arranca","Ninguno: la descripción solo es documentación para personas"],
+   e:"La documentación recomienda descripciones específicas y orientadas a la acción, que digan qué hace y cuándo usarlo, como la del verificador de este repositorio.", r:[21,0]},
+
+  {s:7, q:"Este hook PreToolUse pretende bloquear `rm -rf /`. ¿Lo consigue?",
+   c:`import json, sys
+
+datos = json.load(sys.stdin)
+comando = datos["tool_input"]["command"]
+if "rm -rf /" in comando:
+    print("Comando peligroso", file=sys.stderr)
+    sys.exit(1)
+sys.exit(0)`,
+   o:["No: solo el código de salida 2 bloquea; con 1 el error no es bloqueante y el comando se ejecuta","Sí: cualquier código distinto de 0 bloquea la acción","Sí, pero solo si el mensaje se escribe en stdout","No, porque un hook no puede leer el comando"],
+   e:"Es el error más habitual al escribir hooks: el convenio de Unix (1 = error) no bloquea nada en Claude Code. Los hooks del repositorio salen con 2.", r:[30,0]},
+
+  {s:7, q:"Este hook bloquea con código 2, pero Claude no entiende por qué se ha bloqueado. ¿Qué falla?",
+   c:`if peligroso:
+    print("Bloqueado: pide autorización al usuario")   # stdout
+    sys.exit(2)`,
+   o:["El motivo va a stdout; con código 2, lo que Claude recibe es el texto de stderr","Claude nunca recibe mensajes de los hooks","Falta un `return` antes de `sys.exit`","El mensaje tendría que estar en inglés"],
+   e:"Con código 2, Claude Code pasa a Claude el texto de stderr para que actúe en consecuencia. Por eso los hooks del repositorio usan `file=sys.stderr`.", r:[30,0]},
+
+  {s:7, q:"¿Qué riesgo tiene este hook Stop?",
+   c:`# Hook Stop
+datos = json.load(sys.stdin)
+r = subprocess.run(["bash", "scripts/verificar.sh"])
+if r.returncode != 0:
+    print("Los tests fallan", file=sys.stderr)
+    sys.exit(2)`,
+   o:["Un bucle infinito: si el agente no consigue arreglarlo, se le obliga a seguir una y otra vez; falta comprobar `stop_hook_active`","Ninguno: es exactamente el hook del repositorio","Que se ejecute antes de cada comando","Que borre los tests que fallan"],
+   e:"`stop_hook_active` indica que Claude ya está continuando por un hook Stop. El hook del repositorio no vuelve a bloquear en ese caso y, además, solo verifica si hay cambios.", r:[30,0]},
+
+  {s:7, q:"En Windows, con Python instalado desde python.org, este registro de hook puede dejar las protecciones desactivadas sin aviso. ¿Por qué?",
+   c:`"command": "python3 \\"$CLAUDE_PROJECT_DIR/.claude/hooks/bloquear-comandos.py\\""`,
+   o:["En Git Bash, `python3` suele ser el alias de Microsoft Store, que no ejecuta el script, y ese fallo no bloquea","Windows no admite hooks en Python","`$CLAUDE_PROJECT_DIR` no existe en Windows","Los hooks solo se ejecutan en Linux"],
+   e:"Por eso el repositorio lanza los hooks con `ejecutar.sh`, que busca un Python que funcione y, si no encuentra ninguno, bloquea en lugar de dejar pasar.", r:[0]},
+
+  {s:7, q:"Con esta regla de `bloquear-comandos.py`, ¿cuál de estos comandos se permite?",
+   c:`(r"\\bgit\\s+push\\b.*\\s(--force(?!-with-lease)|-f)\\b", "git push forzado")`,
+   o:["`git push --force-with-lease origin feat`","`git push --force origin main`","`git push -f`","`git push origin main --force`"],
+   e:"`(?!-with-lease)` es una búsqueda negativa: `--force` solo coincide si no le sigue `-with-lease`, la variante que no pisa cambios ajenos.", r:[0]},
+
+  {s:7, q:"¿Por qué esta lista de `proteger-archivos.py` incluye `.claude/settings.json` y `.claude/hooks/`?",
+   c:`PROTEGIDOS = [".env", ".env.*", "*.pem", "*.key", "secrets/*", ".git/*",
+              ".claude/settings.json", ".claude/hooks/*"]`,
+   o:["Para que el agente no pueda desactivar ni modificar sus propios hooks y permisos","Porque contienen contraseñas","Porque Claude Code no puede leerlos","Para que no ocupen contexto"],
+   e:"Una protección que el agente puede desmontar no protege. Los cambios en la configuración de seguridad los hace el usuario.", r:[0]},
+
+  {s:7, q:"¿Qué consigue esta parte de `.claude/settings.json`?",
+   c:`"permissions": {
+  "deny": ["Read(./.env)", "Read(./.env.*)", "Read(./secrets/**)"]
+}`,
+   o:["Impide que Claude Code lea esos archivos de secretos, aunque el agente lo intente","Cifra los archivos `.env`","Borra los secretos al cerrar la sesión","Oculta esos archivos al usuario"],
+   e:"Es una restricción técnica, no una instrucción. Complementa al hook que bloquea comandos como `cat .env`.", r:[0]},
+
+  {s:7, q:"Este tipo permite un simulador «publicado» sin fecha de publicación. ¿Qué cambio hace irrepresentable ese estado?",
+   c:`interface Simulador {
+  nombre: string;
+  estado: "borrador" | "publicado";
+  fechaPublicacion?: Date;
+}`,
+   o:["Una unión discriminada: `{ estado: \"borrador\" } | { estado: \"publicado\"; fechaPublicacion: Date }`","Un comentario: `// si está publicado, rellenar fechaPublicacion`","Cambiar `fechaPublicacion?: Date` por `fechaPublicacion: Date | null`","Validar la fecha en la interfaz antes de guardar"],
+   e:"Con la unión discriminada, el compilador exige la fecha cuando el estado es «publicado»: el estado inválido no se puede ni escribir.", r:[26]},
+
+  {s:7, q:"Alguien llama a `media([])` y el programa falla con `ZeroDivisionError`. Según el diseño por contrato, ¿quién ha incumplido el contrato?",
+   c:`def media(valores: list[float]) -> float:
+    """Precondición: valores no está vacía.
+    Postcondición: min(valores) <= resultado <= max(valores)."""
+    return sum(valores) / len(valores)`,
+   o:["Quien llama: no garantizó la precondición","La función `media`: debía aceptar cualquier lista","Nadie: es un fallo del lenguaje","El test, porque no cubría ese caso"],
+   e:"Quien llama garantiza las precondiciones y quien implementa, las postcondiciones. Para que sea ejecutable, la precondición puede comprobarse con una aserción.", r:[27]},
+
+  {s:7, q:"¿Qué aporta definir así la ficha de un simulador, frente a describirla solo en un documento Markdown?",
+   c:`{
+  "type": "object",
+  "required": ["nombre", "version", "url_descarga"],
+  "properties": {
+    "nombre":       { "type": "string", "minLength": 1 },
+    "version":      { "type": "string", "pattern": "^[0-9]+[.][0-9]+[.][0-9]+$" },
+    "url_descarga": { "type": "string", "format": "uri" }
+  }
+}`,
+   o:["Es ejecutable: un validador comprueba cada ficha automáticamente, y el documento solo recoge lo que el esquema no expresa","Ocupa menos espacio en el repositorio","Claude Code lo exige para leer JSON","Nada: las dos formas son equivalentes"],
+   e:"Un contrato ejecutable detecta los incumplimientos sin depender de que alguien lea y recuerde un documento.", r:[0,27]},
+
+  {s:7, q:"El catálogo guarda hoy los simuladores en un JSON, pero mañana podría usar una base de datos. Según Parnas, ¿qué interfaz debe ofrecer el módulo de catálogo al resto de la web?",
+   c:`# Opción A
+def leer_json(ruta: str) -> dict: ...
+
+# Opción B
+def obtener_simuladores() -> list[Simulador]: ...`,
+   o:["La B: oculta la decisión de dónde y cómo se guardan los datos","La A: es más genérica y reutilizable","Las dos, para dar flexibilidad","Ninguna: la web debería leer el JSON directamente"],
+   e:"Cada módulo debe ocultar una decisión de diseño que pueda cambiar. Con B, pasar de JSON a una base de datos no afecta a quien usa el catálogo.", r:[28]},
+
+  {s:7, q:"Según Gloaguen et al. (2026), ¿qué conviene hacer con esta sección de un CLAUDE.md?",
+   c:`## Estructura del repositorio
+
+- src/ contiene el código fuente.
+- src/components/ contiene los componentes de React.
+- tests/ contiene los tests.
+- public/ contiene las imágenes.`,
+   o:["Quitarla: los resúmenes del repositorio no ayudan y el agente descubre la estructura leyendo el código","Ampliarla con todos los archivos","Moverla al principio para que se cumpla mejor","Traducirla al inglés"],
+   e:"Los archivos de contexto son útiles para lo que el agente no deduciría solo, como las prácticas no estándar.", r:[10]},
+
+  {s:7, q:"¿Cuál de estas líneas sí merece estar en un CLAUDE.md?",
+   o:["Los tests unitarios se lanzan con `pnpm test:unit`; `npm test` ejecuta también los e2e y tarda 20 minutos","Escribe código limpio y bien documentado","Usa nombres de variables descriptivos","Sigue las buenas prácticas de React"],
+   e:"Es información no estándar que el agente no deduciría y que cambia su conducta. Las demás repiten lo que el modelo ya hace por defecto.", r:[10,0]},
+
+  {s:7, q:"Esta regla de un CLAUDE.md es crítica: no debe incumplirse nunca. ¿Dónde conviene implementarla?",
+   c:`## Reglas
+- NUNCA hagas git push --force.`,
+   o:["En un hook PreToolUse que bloquee el comando, porque el cumplimiento de las instrucciones cae durante la sesión","En mayúsculas y al principio de CLAUDE.md","Repetida en varios archivos para reforzarla","En la especificación del proyecto"],
+   e:"Lo obligatorio se garantiza con mecanismos. El hook `bloquear-comandos.py` del repositorio ya lo hace.", r:[23,4,0]},
+
+  {s:7, q:"¿Qué criterio de esta especificación habría que reescribir, y por qué?",
+   c:`### F1. Catálogo de simuladores
+Criterios de aceptación:
+- [ ] La página debe ser rápida y atractiva.
+- [ ] Si no hay simuladores publicados, se muestra «Todavía no hay simuladores».`,
+   o:["El primero: no es comprobable; «la portada carga en menos de 2 s en móvil con 4G» sí lo sería","El segundo: los estados vacíos no se especifican","Ninguno: los dos son comprobables","Los dos: los criterios no deben llevar casilla"],
+   e:"Un criterio sirve si un test o una prueba manual pueden responder sí o no sin interpretar. Son los criterios que recibirá el verificador.", r:[0]},
+
+  {s:7, q:"Una de estas dos líneas no pertenece a la especificación. ¿Cuál, y dónde debería ir?",
+   c:`### F2. Ficha del simulador
+- Implementar con React y Zustand para el estado global.
+- Muestra nombre, descripción, vídeo de demostración y enlace de descarga.`,
+   o:["La de React y Zustand: es una decisión de implementación; va al skill «arquitectura» y, si es significativa, a un ADR","La de la ficha: es demasiado detallada","Ninguna: la especificación debe incluirlo todo","La de React: debería ir en el README"],
+   e:"La especificación dice qué debe hacer el proyecto; el cómo y el porqué van a la arquitectura y a los ADR.", r:[0,29]},
+
+  {s:7, q:"¿Por qué esta petición al verificador es mala?",
+   c:`Tarea para verificador:
+"Comprueba que todo funciona bien."`,
+   o:["Es vaga: debe llevar criterios concretos (los de la especificación), casos límite y negativos, y pedir la batería completa","Es demasiado larga","Debería pedirle que arregle lo que encuentre","Le falta indicar qué modelo usar"],
+   e:"Sin criterios concretos el evaluador es indulgente, y los verificadores tienden a parar tras unos pocos tests superados.", r:[15,7]},
+
+  {s:7, q:"¿Qué falla en este informe del verificador?",
+   c:`Veredicto: CUMPLE
+
+Criterios:
+- [CUMPLE] El catálogo muestra los simuladores
+  evidencia: pytest tests/test_catalogo.py (12 passed)`,
+   o:["Solo ha ejecutado los tests del módulo cambiado: faltan la batería completa y los casos negativos","Debería haber corregido el código","El veredicto debería ser numérico","Nada: 12 tests superados bastan"],
+   e:"El verificador del repositorio debe ejecutar `scripts/verificar.sh` completo, probar casos negativos y no dar nada por cumplido sin evidencia.", r:[0,15]},
+
+  {s:7, q:"¿Por qué tiene sentido definir el conocimiento de diseño de interfaz como un skill y no como un subagente?",
+   c:`.claude/skills/diseno-interfaz/SKILL.md
+---
+name: diseno-interfaz
+description: Diseñar e implementar interfaces de usuario...
+---`,
+   o:["Es conocimiento que el agente principal carga cuando lo necesita, sin traspasar contexto a otro agente","Porque los subagentes no pueden editar HTML","Porque los skills se ejecutan en la GPU","Porque Claude Code solo permite un subagente"],
+   e:"Un skill carga primero una descripción breve y el contenido completo solo cuando hace falta, lo que elimina el motivo principal para repartir el trabajo entre subagentes.", r:[13,0]}
 ];
 
 const LET = ["A","B","C","D"];
-const KEY = "autoeval-agentes-v2";
+const KEY = "autoeval-agentes-v3";
 let state = { filter: -1, order: [], i: 0, answers: {}, shuffles: {}, review: false };
 
 function shuffle(a) {
@@ -310,6 +493,8 @@ function perm(k) {
   return state.shuffles[k];
 }
 function esc(t) { return t.replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+// Texto con `código` en línea
+function fmt(t) { return esc(t).replace(/`([^`]+)`/g, "<code>$1</code>"); }
 
 function refsHtml(r) {
   return r.map(n => {
@@ -353,17 +538,17 @@ function render() {
   const k = state.order[state.i], q = Q[k], p = perm(k), ans = state.answers[k];
   document.getElementById("pos").textContent = (state.review ? "Repaso · " : "") + "Pregunta " + (state.i + 1) + " de " + state.order.length;
 
-  let h = '<div class="section">' + esc(SECTIONS[q.s]) + '</div><div class="q">' + esc(q.q) + '</div><div class="opts">';
+  let h = '<div class="section">' + esc(SECTIONS[q.s]) + '</div><div class="q">' + fmt(q.q) + '</div>' + (q.c ? '<pre class="code">' + esc(q.c) + '</pre>' : '') + '<div class="opts">';
   p.forEach((oi, pos) => {
     let cls = "opt";
     if (ans !== undefined) { if (oi === 0) cls += " ok"; else if (oi === ans) cls += " ko"; }
-    h += '<button class="' + cls + '" data-oi="' + oi + '"' + (ans !== undefined ? " disabled" : "") + '><span class="k">' + LET[pos] + "</span><span>" + esc(q.o[oi]) + "</span></button>";
+    h += '<button class="' + cls + '" data-oi="' + oi + '"' + (ans !== undefined ? " disabled" : "") + '><span class="k">' + LET[pos] + "</span><span>" + fmt(q.o[oi]) + "</span></button>";
   });
   h += "</div>";
   if (ans !== undefined) {
     const good = ans === 0;
     h += '<div class="fb show ' + (good ? "ok" : "ko") + '"><strong>' + (good ? "Correcto." : "No es esa. La respuesta correcta es la marcada en verde.") + "</strong>" +
-         esc(q.e) + '<div class="ref">Fuente: ' + refsHtml(q.r) + "</div></div>";
+         fmt(q.e) + '<div class="ref">Fuente: ' + refsHtml(q.r) + "</div></div>";
   }
   h += '<div class="nav"><button class="btn ghost" id="prev"' + (state.i === 0 ? " disabled" : "") + '>← Anterior</button>' +
        '<button class="btn" id="next"' + (ans === undefined ? " disabled" : "") + ">" + (state.i === state.order.length - 1 ? "Ver resultado" : "Siguiente →") + "</button></div>";

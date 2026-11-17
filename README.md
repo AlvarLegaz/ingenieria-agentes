@@ -251,6 +251,9 @@ cae con el avance de la sesión [4]. Los *hooks* de Claude Code resuelven esto:
 son programas que se ejecutan automáticamente en momentos concretos (antes de
 usar una herramienta, al terminar una respuesta) y que garantizan que ciertas
 acciones ocurran siempre, sin depender de que el modelo decida hacerlas [23].
+Un hook bloquea una acción saliendo con código 2: Claude Code descarta la acción
+y le pasa a Claude el mensaje escrito en la salida de error. Cualquier otro
+código de error se trata como no bloqueante y la acción sigue adelante [30].
 
 La idea es antigua. Shingo desarrolló en la industria los dispositivos
 *poka-yoke*, que impiden cometer un error o lo hacen evidente al instante, y la
@@ -554,18 +557,23 @@ proyecto", "ayúdame a especificar lo que quiero construir").
 29. Nygard, M. (2011, 15 de noviembre). *Documenting Architecture Decisions*.
     Cognitect.
     <https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions>
+30. Anthropic. *Hooks reference* (documentación de Claude Code).
+    <https://code.claude.com/docs/en/hooks>
 
 ---
 
 ## Autoevaluación
 
-Test interactivo de 50 preguntas sobre la teoría de este documento:
+Test interactivo de 70 preguntas sobre este documento:
 
 **▶ [Hacer la autoevaluación](https://alvarlegaz.github.io/ingenieria-agentes/autoevaluacion.html)**
 
-Las preguntas se agrupan en siete bloques: contexto y `CLAUDE.md`, un solo
-agente, subagentes, verificación, hooks, contratos, y memoria y medición. Cada
-respuesta se corrige al momento, con su explicación y la referencia de la que
+Las preguntas se agrupan en ocho bloques. Siete repasan la teoría: contexto y
+`CLAUDE.md`, un solo agente, subagentes, verificación, hooks, contratos, y
+memoria y medición. El octavo, **casos prácticos con código**, muestra
+fragmentos reales (definiciones de subagentes, hooks, `settings.json`, tipos y
+esquemas, secciones de `CLAUDE.md` y de especificaciones) y pide detectar el
+fallo o elegir la mejor versión. Cada respuesta se corrige al momento, con su explicación y la referencia de la que
 procede, con la misma numeración que la lista anterior. Al terminar muestra la
 nota por bloque y permite repasar solo las preguntas falladas.
 
