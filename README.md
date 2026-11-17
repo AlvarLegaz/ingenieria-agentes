@@ -615,24 +615,41 @@ proyecto", "ayúdame a especificar lo que quiero construir").
 33. Zeng, W. et al. (2026, febrero). *LOCA-bench: Benchmarking Language Agents
     Under Controllable and Extreme Context Growth*. arXiv:2602.07962.
     <https://arxiv.org/abs/2602.07962>
+34. Anthropic. *Referencia de herramientas* (documentación de Claude Code).
+    <https://code.claude.com/docs/en/tools-reference>
+35. Model Context Protocol (2026). *Specification: Tools*.
+    <https://modelcontextprotocol.io/specification/2026-07-28/server/tools>
+36. AGENTS.md. *Formato abierto de instrucciones para agentes de programación*.
+    <https://agents.md>
+37. Git. *git-diff* (documentación oficial). <https://git-scm.com/docs/git-diff>
 
 ---
 
 ## Autoevaluación
 
-Test interactivo de 76 preguntas para aprender los conceptos de este documento:
+Test interactivo de 126 preguntas para aprender los conceptos de este documento:
 
 **▶ [Hacer la autoevaluación](https://alvarlegaz.github.io/ingenieria-agentes/autoevaluacion.html)**
 
 Las preguntas evalúan conceptos y su aplicación, no lo que dijo un estudio
 concreto: las fuentes aparecen en la explicación de cada respuesta, con la misma
-numeración que la lista de referencias. Se agrupan en ocho bloques. Siete
-repasan la teoría: contexto y `CLAUDE.md`, uno o varios agentes, subagentes,
-verificación, prevención de errores, contratos, y memoria y medición. El octavo,
-**casos prácticos con código**, muestra fragmentos reales (definiciones de
-subagentes, hooks, `settings.json`, tipos y esquemas, secciones de `CLAUDE.md` y
-de especificaciones) y pide detectar el fallo o elegir la mejor versión. Al
-terminar muestra la nota por bloque y permite repasar solo las preguntas
+numeración que la lista de referencias. Se agrupan en diez bloques:
+
+- **Introducción**: qué es un modelo y qué es un agente, en qué se diferencian,
+  contexto, tokens, archivos de instrucciones, subagentes, skills y hooks,
+  explicados de forma general para cualquier herramienta de agentes.
+- **Herramientas**: las herramientas típicas de un agente de programación (Read,
+  Write, Edit, Glob, Grep, Bash, WebSearch, WebFetch, subagentes, lista de
+  tareas, LSP, MCP…), qué hace cada una y cuándo elegirla.
+- Siete bloques de teoría: contexto y `CLAUDE.md`, uno o varios agentes,
+  subagentes, verificación, prevención de errores, contratos, y memoria y
+  medición.
+- **Casos prácticos con código**: fragmentos reales (definiciones de
+  subagentes, hooks, `settings.json`, tipos y esquemas, secciones de
+  `CLAUDE.md` y de especificaciones) en los que hay que detectar el fallo o
+  elegir la mejor versión.
+
+Al terminar muestra la nota por bloque y permite repasar solo las preguntas
 falladas.
 
 El test está en `docs/autoevaluacion.html` y también funciona sin conexión:
