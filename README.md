@@ -609,12 +609,12 @@ proyecto", "ayúdame a especificar lo que quiero construir").
 
 ## Autoevaluación
 
-Test interactivo de 70 preguntas sobre este documento:
+Test interactivo de 74 preguntas sobre este documento:
 
 **▶ [Hacer la autoevaluación](https://alvarlegaz.github.io/ingenieria-agentes/autoevaluacion.html)**
 
 Las preguntas se agrupan en ocho bloques. Siete repasan la teoría: contexto y
-`CLAUDE.md`, un solo agente, subagentes, verificación, hooks, contratos, y
+`CLAUDE.md`, uno o varios agentes, subagentes, verificación, hooks, contratos, y
 memoria y medición. El octavo, **casos prácticos con código**, muestra
 fragmentos reales (definiciones de subagentes, hooks, `settings.json`, tipos y
 esquemas, secciones de `CLAUDE.md` y de especificaciones) y pide detectar el
