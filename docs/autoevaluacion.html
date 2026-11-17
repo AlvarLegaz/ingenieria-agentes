@@ -69,7 +69,7 @@
   .hint { color: var(--muted); font-size: .8rem; margin-top: 14px; text-align: center; }
   .code {
     background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
-    padding: 12px 14px; margin: -4px 0 16px; white-space: pre-wrap; overflow-wrap: anywhere;
+    padding: 12px 14px; margin: -4px 0 16px; white-space: pre; overflow-x: auto;
     font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   }
   code {
@@ -81,7 +81,7 @@
 <body>
 <main>
   <h1>Autoevaluación: ingeniería de agentes para programación</h1>
-  <p class="sub">132 preguntas sobre conceptos y casos prácticos con código. Cada respuesta se corrige al momento con su explicación y la fuente que la respalda.</p>
+  <p class="sub">143 preguntas sobre conceptos y casos prácticos con código. Cada respuesta se corrige al momento con su explicación y la fuente que la respalda.</p>
 
   <div class="chips" id="chips" role="group" aria-label="Filtrar por bloque"></div>
   <div class="bar"><div id="bar"></div></div>
@@ -461,6 +461,50 @@ const Q = [
   {s:8, q:"Se quiere decidir si compensa usar un modelo potente como asesor de otro más económico. ¿Qué variantes conviene comparar?",
    o:["El económico solo, el económico con el potente de asesor, y el potente solo","Solo el modelo potente, que es el que marca el mejor resultado posible","Solo el modelo económico, que es el que finalmente se va a utilizar","Tres proveedores distintos, cada uno con su modelo más potente"],
    e:"Así se ve si el asesor mejora lo bastante como para justificar su coste, y si el modelo potente solo sería mejor.", r:[31]},
+  {s:9, q:"Este es el bucle mínimo de un agente, escrito en Python. ¿En qué línea interviene el modelo de lenguaje?",
+   c:"def ejecutar_agente(tarea, herramientas, max_pasos=30):\n    mensajes = [sistema(INSTRUCCIONES), usuario(tarea)]\n    for paso in range(max_pasos):\n        # (A)\n        resp = llamar_modelo(mensajes, herramientas)\n        mensajes.append(resp)\n        # (B)\n        if not resp.llamadas:\n            return resp.texto\n        # (C)\n        for llamada in resp.llamadas:\n            funcion = herramientas[llamada.nombre]\n            resultado = funcion(**llamada.argumentos)\n            # (E)\n            mensajes.append(tool(llamada.id, resultado))\n    # (D)\n    raise RuntimeError(\"Límite de pasos alcanzado\")",
+   o:["Solo en (A): todo lo demás es el arnés","En (C): es el modelo el que ejecuta las funciones","En (B) y (D): el modelo decide si para y cuándo","En todas: el bucle entero se ejecuta dentro del modelo"],
+   e:"El modelo solo recibe los mensajes y devuelve una respuesta (A). Ejecutar funciones, guardar el historial, decidir cuándo cortar o lanzar el error es código normal: eso es el arnés. Agente = modelo + este bucle + herramientas.", r:[2,7]},
+  {s:9, q:"En este bucle de agente, ¿cuándo termina la tarea con éxito?",
+   c:"def ejecutar_agente(tarea, herramientas, max_pasos=30):\n    mensajes = [sistema(INSTRUCCIONES), usuario(tarea)]\n    for paso in range(max_pasos):\n        # (A)\n        resp = llamar_modelo(mensajes, herramientas)\n        mensajes.append(resp)\n        # (B)\n        if not resp.llamadas:\n            return resp.texto\n        # (C)\n        for llamada in resp.llamadas:\n            funcion = herramientas[llamada.nombre]\n            resultado = funcion(**llamada.argumentos)\n            # (E)\n            mensajes.append(tool(llamada.id, resultado))\n    # (D)\n    raise RuntimeError(\"Límite de pasos alcanzado\")",
+   o:["Cuando el modelo responde sin pedir herramientas (B)","Cuando se han ejecutado todas las herramientas disponibles","Cuando el bucle llega a `max_pasos` sin que haya errores","Cuando una herramienta devuelve el texto «tarea terminada»"],
+   e:"El modelo señala que ha terminado respondiendo con texto y sin llamadas a herramientas. Llegar a `max_pasos` no es éxito: es la salida de emergencia (D).", r:[2]},
+  {s:9, q:"¿Para qué sirven `max_pasos` y la línea (D) de este bucle?",
+   c:"def ejecutar_agente(tarea, herramientas, max_pasos=30):\n    mensajes = [sistema(INSTRUCCIONES), usuario(tarea)]\n    for paso in range(max_pasos):\n        # (A)\n        resp = llamar_modelo(mensajes, herramientas)\n        mensajes.append(resp)\n        # (B)\n        if not resp.llamadas:\n            return resp.texto\n        # (C)\n        for llamada in resp.llamadas:\n            funcion = herramientas[llamada.nombre]\n            resultado = funcion(**llamada.argumentos)\n            # (E)\n            mensajes.append(tool(llamada.id, resultado))\n    # (D)\n    raise RuntimeError(\"Límite de pasos alcanzado\")",
+   o:["Para cortar si el modelo no termina y no gastar sin fin","Para que el modelo sepa cuántos pasos tiene y los reparta bien","Para que el agente trabaje más rápido al tener menos vueltas","Para obligar al modelo a usar al menos treinta herramientas"],
+   e:"Un modelo puede quedarse en bucle (leer lo mismo, reintentar lo mismo). Sin un límite de pasos, tokens o tiempo, el agente gastaría indefinidamente. Los arneses reales tienen varios límites así.", r:[34]},
+  {s:9, q:"Alguien borra la línea (E) de este bucle para simplificarlo. ¿Qué pasará?",
+   c:"def ejecutar_agente(tarea, herramientas, max_pasos=30):\n    mensajes = [sistema(INSTRUCCIONES), usuario(tarea)]\n    for paso in range(max_pasos):\n        # (A)\n        resp = llamar_modelo(mensajes, herramientas)\n        mensajes.append(resp)\n        # (B)\n        if not resp.llamadas:\n            return resp.texto\n        # (C)\n        for llamada in resp.llamadas:\n            funcion = herramientas[llamada.nombre]\n            resultado = funcion(**llamada.argumentos)\n            # (E)\n            mensajes.append(tool(llamada.id, resultado))\n    # (D)\n    raise RuntimeError(\"Límite de pasos alcanzado\")",
+   o:["El modelo no verá los resultados: repetirá o inventará","Nada importante: el modelo recuerda lo que ha pedido en cada paso","El agente irá más rápido, porque el historial ocupará menos","El bucle fallará con un error de Python en la siguiente vuelta"],
+   e:"El modelo no tiene memoria propia: solo ve `mensajes`. Si el resultado de la herramienta no vuelve al historial, para el modelo es como si nunca se hubiera ejecutado.", r:[2]},
+  {s:9, q:"El arnés envía al modelo esta descripción de una herramienta. ¿Para qué la necesita el modelo?",
+   c:"{\n  \"name\": \"leer_archivo\",\n  \"description\": \"Devuelve el contenido de un archivo de texto del proyecto.\",\n  \"parameters\": {\n    \"type\": \"object\",\n    \"properties\": {\"ruta\": {\"type\": \"string\"}},\n    \"required\": [\"ruta\"]\n  }\n}",
+   o:["Para saber cuándo usarla y con qué argumentos pedirla","Para ejecutarla él mismo dentro de su propio servidor","Para descargar el código de la función y aprenderlo","Para comprobar que la herramienta no tiene errores"],
+   e:"El modelo nunca ejecuta la función: solo ve su nombre, su descripción y sus parámetros, y con eso escribe una petición como `leer_archivo(ruta=\"src/app.py\")`. La ejecuta el arnés. Una descripción vaga hace que el modelo la use mal o no la use.", r:[35,2]},
+  {s:9, q:"¿Cuál es el fallo de seguridad de esta herramienta?",
+   c:"def leer_archivo(ruta: str) -> str:\n    with open(ruta, encoding=\"utf-8\") as f:\n        return f.read()",
+   o:["Acepta rutas fuera del proyecto, como `../../.ssh/id_rsa`","No cierra el archivo después de leerlo y lo deja bloqueado","Debería devolver bytes en vez de texto para ser más segura","No tiene fallo: leer archivos nunca es una acción peligrosa"],
+   e:"El modelo puede pedir cualquier ruta, por error o porque un texto malicioso se lo sugiera. El arnés debe resolver la ruta y rechazarla si queda fuera de la carpeta del proyecto (y no leer secretos como `.env`). El `with` ya cierra el archivo.", r:[34,23]},
+  {s:9, q:"Una herramienta lanza una excepción. ¿Qué versión del bucle es mejor?",
+   c:"# Versión 1\nresultado = funcion(**llamada.argumentos)\n\n# Versión 2\ntry:\n    resultado = funcion(**llamada.argumentos)\nexcept Exception as e:\n    resultado = f\"ERROR: {e}\"",
+   o:["La 2: el error vuelve al modelo y puede corregir su petición","La 1: si una herramienta falla, lo correcto es parar el agente","La 2, porque así los errores nunca llegan a producirse","Da igual: el modelo no lee el resultado de las herramientas"],
+   e:"Un error es información útil: «archivo no encontrado» le dice al modelo que pruebe otra ruta. Si el arnés se cae con la primera excepción, el agente no puede recuperarse de fallos normales.", r:[2]},
+  {s:9, q:"Se añade esto antes de ejecutar cada herramienta. ¿A qué mecanismo de las herramientas de agentes equivale?",
+   c:"if llamada.nombre in (\"ejecutar_comando\", \"borrar_archivo\"):\n    if not preguntar_usuario(llamada):\n        mensajes.append(tool(llamada.id, \"Denegado por el usuario\"))\n        continue",
+   o:["A los permisos o a un hook que actúa antes de usar una herramienta","A un subagente que revisa lo que va a hacer el agente principal","A un skill que el agente carga antes de usar herramientas peligrosas","A una instrucción del archivo de instrucciones del proyecto"],
+   e:"Es código que se ejecuta siempre, antes de la herramienta, y puede bloquearla: lo mismo que los permisos (permitir, preguntar, denegar) o un hook PreToolUse. Además devuelve el motivo al modelo para que siga de otra forma.", r:[23,34]},
+  {s:9, q:"Este arnés registra `delegar` como una herramienta más. ¿Qué se consigue?",
+   c:"def delegar(tarea: str) -> str:\n    return ejecutar_agente(tarea, HERRAMIENTAS_LECTURA, max_pasos=15)\n\nherramientas[\"delegar\"] = delegar",
+   o:["Un subagente con contexto propio y solo lectura","Que el agente principal trabaje el doble de rápido en cada paso","Que dos modelos compartan el mismo historial de mensajes","Que el agente pueda modificar sus propias herramientas"],
+   e:"`ejecutar_agente` crea una lista de mensajes nueva, así que el subagente no llena el contexto del principal. Solo tiene herramientas de lectura y devuelve únicamente su texto final. Así funcionan los subagentes en los arneses reales.", r:[21]},
+  {s:9, q:"Se cambia la rama (B) del bucle por esta. ¿Qué hace ahora el agente?",
+   c:"if not resp.llamadas:\n    ok, salida = ejecutar_tests()\n    if ok:\n        return resp.texto\n    mensajes.append(usuario(\"Los tests fallan:\\n\" + salida))\n    continue",
+   o:["No puede terminar mientras fallen los tests: recibe el error y sigue","Ejecuta los tests al principio de la tarea, antes de llamar al modelo","Termina siempre, pero avisa al usuario si los tests están fallando","Reescribe los tests que fallan para que el agente pueda terminar"],
+   e:"Es una verificación obligatoria al terminar, como un hook Stop que devuelve el error. Sigue protegido por `max_pasos`: si el modelo no consigue arreglarlo, el bucle se corta igualmente.", r:[23,22]},
+  {s:9, q:"¿Qué tienen en común estas cuatro piezas de un arnés?",
+   c:"max_pasos = 30                       # límite de vueltas\nif ruta_fuera_del_proyecto(ruta): ... # restricción de rutas\nif not preguntar_usuario(llamada): ...# permiso\nok, salida = ejecutar_tests()         # verificación al terminar",
+   o:["Son código: se cumplen siempre, sin depender del modelo","Son instrucciones que el modelo decide si seguir o no","Son herramientas que el modelo puede pedir cuando quiera","Son datos que se usan para volver a entrenar el modelo"],
+   e:"Lo que debe cumplirse siempre va en el arnés (código, permisos, hooks), no en el prompt. Las instrucciones escritas el modelo las sigue casi siempre, pero no siempre.", r:[23,4]},
   {s:9, q:"Este subagente de Claude Code debe comprobar de forma independiente el trabajo del agente principal. Su definición tiene un fallo de diseño. ¿Cuál?",
    c:"---\nname: verificador\ndescription: Verifica los cambios antes de cerrar una tarea.\ntools: Read, Grep, Glob, Bash, Edit, Write\nmodel: inherit\n---",
    o:["Tiene `Edit` y `Write`: podría corregir lo que verifica","Le falta el campo `color`, que es obligatorio en todos los subagentes","Con `model: inherit` no puede ejecutar tests ni comandos de Bash","La descripción está en español y Claude Code no sabrá cuándo usarlo"],
@@ -555,7 +599,7 @@ const Q = [
 ];
 
 const LET = ["A","B","C","D"];
-const KEY = "autoeval-agentes-v7";
+const KEY = "autoeval-agentes-v8";
 let state = { filter: -1, order: [], i: 0, answers: {}, shuffles: {}, review: false };
 
 function shuffle(a) {

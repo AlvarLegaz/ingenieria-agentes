@@ -19,6 +19,7 @@ interpretación propia, y no conclusión de una fuente, se indica como tal.
 
 ## Índice
 
+- [Conceptos básicos](#conceptos-básicos)
 - [Organización básica de un proyecto](#organización-básica-de-un-proyecto)
 - [1. Tres limitaciones de partida](#1-tres-limitaciones-de-partida)
   - [La atención es un recurso escaso](#la-atención-es-un-recurso-escaso)
@@ -42,6 +43,57 @@ interpretación propia, y no conclusión de una fuente, se indica como tal.
   - [3. Empezar a trabajar con Claude Code](#3-empezar-a-trabajar-con-claude-code)
 - [Referencias](#referencias)
 - [Autoevaluación](#autoevaluación)
+
+---
+
+## Conceptos básicos
+
+Usar ChatGPT o Claude en el navegador es hablar con un **modelo**: tú escribes,
+él responde con texto, y copiar el código al proyecto y probarlo te toca a ti.
+Programar con agentes es dar un paso más: el modelo lee tus archivos, los
+edita, ejecuta los tests y corrige lo que falla, en un bucle, hasta terminar.
+
+- **Modelo (LLM).** Programa entrenado que, dado un texto, genera su
+  continuación. Opus, Sonnet, GPT, Gemini o un modelo local con Ollama o vLLM.
+  Por sí solo no toca tu ordenador: solo produce texto.
+- **Arnés (harness).** El programa que rodea al modelo: le da herramientas,
+  ejecuta lo que pide, le devuelve el resultado y repite. También gestiona el
+  contexto, los permisos y los límites. Claude Code, Codex CLI, Cursor u
+  OpenCode son arneses.
+- **Agente.** Modelo + arnés trabajando hacia un objetivo. El mismo arnés puede
+  usar modelos distintos, y el mismo modelo rinde distinto en arneses distintos.
+- **Herramientas (tools).** Funciones que el modelo puede pedir y el arnés
+  ejecuta: leer (`Read`), buscar (`Grep`, `Glob`), editar (`Edit`, `Write`),
+  ejecutar comandos (`Bash`), consultar la web… Con MCP se conectan herramientas
+  externas.
+- **Contexto.** Todo lo que el modelo ve en ese momento: instrucciones,
+  conversación, archivos leídos y resultados. Es limitado y se degrada al
+  llenarse, y se pierde al cerrar la sesión.
+- **Archivo de instrucciones.** `CLAUDE.md` o `AGENTS.md`: lo que el arnés
+  carga al empezar cada sesión (comandos, convenciones, cómo se trabaja).
+- **Subagente.** Otro agente al que el principal delega una tarea, con su
+  propio contexto, sus herramientas y su modelo. Se define con un archivo de
+  configuración, no programando.
+- **Skill.** Instrucciones especializadas que el agente carga solo cuando las
+  necesita.
+- **Hook.** Script que el arnés ejecuta siempre en un momento fijo (antes de
+  usar una herramienta, al terminar) y que puede bloquear la acción. A
+  diferencia de una instrucción, no depende de que el modelo la cumpla.
+
+El bucle de cualquier agente, reducido a lo esencial:
+
+```python
+while True:
+    respuesta = modelo(mensajes, herramientas)    # el modelo decide
+    if not respuesta.llamadas:                    # no pide nada más:
+        break                                     # ha terminado
+    for llamada in respuesta.llamadas:            # el arnés ejecuta
+        resultado = ejecutar(llamada)
+        mensajes.append(resultado)                # y le devuelve el resultado
+```
+
+El resto del documento trata de cómo configurar ese bucle para que el resultado
+sea fiable.
 
 ---
 
@@ -629,7 +681,7 @@ proyecto", "ayúdame a especificar lo que quiero construir").
 
 ## Autoevaluación
 
-Test interactivo de 132 preguntas para aprender los conceptos de este documento:
+Test interactivo de 143 preguntas para aprender los conceptos de este documento:
 
 **▶ [Hacer la autoevaluación](https://alvarlegaz.github.io/ingenieria-agentes/autoevaluacion.html)**
 
@@ -647,10 +699,11 @@ numeración que la lista de referencias. Se agrupan en diez bloques:
 - Siete bloques de teoría: contexto y `CLAUDE.md`, uno o varios agentes,
   subagentes, verificación, prevención de errores, contratos, y memoria y
   medición.
-- **Casos prácticos con código**: fragmentos reales (definiciones de
-  subagentes, hooks, `settings.json`, tipos y esquemas, secciones de
-  `CLAUDE.md` y de especificaciones) en los que hay que detectar el fallo o
-  elegir la mejor versión.
+- **Casos prácticos con código**: el bucle de un agente escrito en Python
+  (qué hace el modelo y qué el arnés, límites, permisos, subagentes), y
+  fragmentos reales (definiciones de subagentes, hooks, `settings.json`, tipos
+  y esquemas, secciones de `CLAUDE.md` y de especificaciones) en los que hay
+  que detectar el fallo o elegir la mejor versión.
 
 Al terminar muestra la nota por bloque y permite repasar solo las preguntas
 falladas.
