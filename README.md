@@ -622,12 +622,14 @@ proyecto", "ayúdame a especificar lo que quiero construir").
 36. AGENTS.md. *Formato abierto de instrucciones para agentes de programación*.
     <https://agents.md>
 37. Git. *git-diff* (documentación oficial). <https://git-scm.com/docs/git-diff>
+38. OpenAI. *Subagents* (documentación de Codex).
+    <https://developers.openai.com/codex/subagents>
 
 ---
 
 ## Autoevaluación
 
-Test interactivo de 126 preguntas para aprender los conceptos de este documento:
+Test interactivo de 132 preguntas para aprender los conceptos de este documento:
 
 **▶ [Hacer la autoevaluación](https://alvarlegaz.github.io/ingenieria-agentes/autoevaluacion.html)**
 
@@ -635,7 +637,8 @@ Las preguntas evalúan conceptos y su aplicación, no lo que dijo un estudio
 concreto: las fuentes aparecen en la explicación de cada respuesta, con la misma
 numeración que la lista de referencias. Se agrupan en diez bloques:
 
-- **Introducción**: qué es un modelo y qué es un agente, en qué se diferencian,
+- **Introducción**: qué es un modelo, qué es un agente y qué es el arnés, cómo
+  se definen los agentes en Claude Code o Codex,
   contexto, tokens, archivos de instrucciones, subagentes, skills y hooks,
   explicados de forma general para cualquier herramienta de agentes.
 - **Herramientas**: las herramientas típicas de un agente de programación (Read,

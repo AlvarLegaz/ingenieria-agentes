@@ -81,7 +81,7 @@
 <body>
 <main>
   <h1>Autoevaluación: ingeniería de agentes para programación</h1>
-  <p class="sub">126 preguntas sobre conceptos y casos prácticos con código. Cada respuesta se corrige al momento con su explicación y la fuente que la respalda.</p>
+  <p class="sub">132 preguntas sobre conceptos y casos prácticos con código. Cada respuesta se corrige al momento con su explicación y la fuente que la respalda.</p>
 
   <div class="chips" id="chips" role="group" aria-label="Filtrar por bloque"></div>
   <div class="bar"><div id="bar"></div></div>
@@ -124,6 +124,7 @@ const REFS = {
   35: ["Model Context Protocol. Especificación: herramientas (2026)","https://modelcontextprotocol.io/specification/2026-07-28/server/tools"],
   36: ["AGENTS.md. Formato abierto de instrucciones para agentes de programación","https://agents.md"],
   37: ["Git. Documentación de git diff","https://git-scm.com/docs/git-diff"],
+  38: ["OpenAI. Documentación de Codex: subagentes y agentes propios","https://developers.openai.com/codex/subagents"],
   0: ["Repositorio ingenieria-agentes","https://github.com/AlvarLegaz/ingenieria-agentes"]
 };
 
@@ -141,6 +142,25 @@ const Q = [
   {s:0, q:"¿Cuál es la diferencia entre un modelo y un agente?",
    o:["El modelo genera texto; el agente le da herramientas y un bucle","Ninguna: «agente» es solo el nombre comercial que se da a un modelo","El agente es un modelo que se ha vuelto a entrenar solo para programar","El modelo se ejecuta en la nube y el agente en el ordenador del usuario"],
    e:"El modelo es el «cerebro» que genera texto. El agente es el sistema que lo usa: le da herramientas, ejecuta lo que pide, le devuelve los resultados y repite. Con el mismo modelo se pueden construir agentes muy distintos.", r:[2]},
+  {s:0, q:"En un agente de programación, ¿qué es el arnés (harness)?",
+   o:["El programa que rodea al modelo: le da herramientas y ejecuta lo que pide","Una capa de seguridad que impide al modelo responder cosas inadecuadas","El conjunto de datos con el que se ha entrenado el modelo para programar","Un tipo de modelo pequeño que se especializa en coordinar a otros"],
+   e:"Agente = modelo + arnés. El modelo decide qué hacer; el arnés (Claude Code, Codex CLI, Cursor…) le pasa las herramientas, ejecuta de verdad lo que el modelo pide, le devuelve el resultado, gestiona el contexto, los permisos y los hooks, y repite el bucle.", r:[7,2]},
+  {s:0, q:"¿Cuál es la diferencia entre un agente y un arnés?",
+   o:["El arnés es el programa; el agente es ese programa con un modelo trabajando","Ninguna: «agente» y «arnés» son dos nombres para la misma cosa","El agente es el programa que se instala; el arnés es el modelo que razona","El arnés solo existe cuando hay varios agentes trabajando juntos"],
+   e:"Agente = modelo + arnés. El arnés (Claude Code, Codex CLI…) es el software: herramientas, bucle, permisos, contexto. Sin modelo no decide nada; el modelo sin arnés solo genera texto. Juntos forman el agente, y dentro de un mismo arnés puede haber varios agentes (el principal y sus subagentes), cada uno con su modelo e instrucciones.", r:[7,2]},
+  {s:0, q:"En Claude Code o en Codex, ¿cómo se crea un agente propio (un subagente) si no se programa con un script de Python?",
+   o:["Con un archivo de configuración: nombre, descripción, instrucciones, modelo y herramientas","Hay que programarlo en Python o TypeScript con el SDK del proveedor del modelo","Se entrena un modelo nuevo con ejemplos de lo que tiene que hacer ese agente","Solo se puede crear desde la web del proveedor, nunca dentro del proyecto"],
+   e:"Es declarativo: el arnés ya pone el bucle y las herramientas, y tú solo describes el agente. En Claude Code, un Markdown con cabecera YAML en `.claude/agents/`; en Codex, un archivo TOML en `.codex/agents/` con `name`, `description` y `developer_instructions`, y opcionalmente el modelo. Un SDK en Python solo hace falta si construyes tu propio arnés.", r:[21,38]},
+  {s:0, q:"¿Qué contiene un archivo `.claude/agents/revisor.md` como este?",
+   c:"---\nname: revisor\ndescription: Revisa el diff y ejecuta los tests. Úsalo al terminar un cambio.\ntools: Read, Grep, Glob, Bash\nmodel: opus\n---\nEres un revisor. No modificas archivos. Devuelve un veredicto con evidencias.",
+   o:["La definición de un subagente: cabecera de configuración y sus instrucciones","Un script que Claude Code compila y ejecuta para crear un agente nuevo","La documentación del proyecto, que el agente principal lee al arrancar","Los datos para reentrenar Opus como revisor de código del proyecto"],
+   e:"Entre los `---` va la configuración (nombre, cuándo usarlo, herramientas, modelo); debajo, el prompt de sistema del subagente. No se ejecuta ni se compila: Claude Code lo lee y crea el subagente a partir de él. En Codex lo mismo se escribe en TOML.", r:[21,38]},
+  {s:0, q:"¿Cuál de estas tareas hace el arnés y no el modelo?",
+   o:["Ejecutar el comando que el modelo ha pedido","Decidir qué archivo conviene leer a continuación","Escribir el código que resuelve la tarea","Interpretar el error que ha devuelto un test"],
+   e:"El modelo solo genera texto: decide, escribe código e interpreta resultados. Ejecutar comandos, leer o escribir archivos de verdad, cargar las instrucciones del proyecto o pedir permiso es trabajo del arnés.", r:[7,34]},
+  {s:0, q:"Mismo modelo en dos herramientas de agentes distintas, y en una resuelve la tarea mucho mejor. ¿Qué lo puede explicar?",
+   o:["El arnés: herramientas, contexto y bucle influyen en el resultado","Nada: con el mismo modelo, el resultado tiene que ser idéntico","Que una de las dos herramientas entrena el modelo con tu código","Que el modelo funciona mejor cuanto más cara es la herramienta"],
+   e:"El modelo no trabaja solo: qué herramientas recibe, cómo se describen, qué contexto le llega y cómo se verifica su trabajo cambian mucho el resultado. Por eso se habla de diseño del arnés (harness design).", r:[7]},
   {s:0, q:"¿Puede un mismo agente funcionar con modelos diferentes?",
    o:["Sí: el modelo es una pieza que se configura y se puede cambiar","No: cada agente se entrena junto a su modelo y no se separan","Solo si los dos modelos tienen el mismo tamaño y la misma versión","Sí, pero solo al instalarlo; después ya no se puede cambiar"],
    e:"Las herramientas de agentes permiten elegir el modelo en la configuración, y a menudo uno distinto para cada subagente. Las herramientas y las instrucciones del agente siguen siendo las mismas; cambia la capacidad y el coste del modelo que razona.", r:[21,12]},
@@ -535,7 +555,7 @@ const Q = [
 ];
 
 const LET = ["A","B","C","D"];
-const KEY = "autoeval-agentes-v5";
+const KEY = "autoeval-agentes-v7";
 let state = { filter: -1, order: [], i: 0, answers: {}, shuffles: {}, review: false };
 
 function shuffle(a) {
